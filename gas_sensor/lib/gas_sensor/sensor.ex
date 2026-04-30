@@ -494,38 +494,6 @@ defmodule GasSensor.Sensor do
     end
   end
 
-  defp read_ads1115(ref) do
-    with :ok <- trigger_conversion(ref),
-         :ok <- wait_for_conversion(),
-         {:ok, raw} <- read_conversion(ref) do
-         ppm = raw_to_ppm(raw)
-      {:ok, ppm}
-    else
-      error -> error
-    end
-  end
-
-  defp trigger_conversion(ref) do
-    Circuits.I2C.write(ref, @ads1115_addr, <<@reg_config, @config_msb, @config_lsb>>)
-  end
-
-  defp wait_for_conversion do
-    Process.sleep(@conversion_ms)
-    :ok
-  end
-
-  defp read_conversion(ref) do
-    case Circuits.I2C.write_read(ref, @ads1115_addr, <<@reg_conversion>>, 2) do
-      {:ok, <<msb, lsb>>} ->
-        raw = msb <<< 8 ||| lsb
-        raw = if raw > 32767, do: raw - 65536, else: raw
-        {:ok, raw}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
   # this need to be fixed, there is an error here...
   defp raw_to_ppm(raw) do
     # Step 1: raw ADC to millivolts (PGA ±2.048V = 0.0625mV per bit)
