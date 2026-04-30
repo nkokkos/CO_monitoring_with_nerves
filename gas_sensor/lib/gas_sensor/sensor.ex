@@ -189,33 +189,33 @@ defmodule GasSensor.Sensor do
           # time.
 
           # Internal to this genserver instance 
-          i2c: 			ref,
-          phase: 		:calibrating,	#:calibrating | :running
-          calibration_samples:	[],
-          offset_mv: 		0.0,
+          i2c: ref,
+          phase: :calibrating,	#:calibrating | :running
+          calibration_samples: [],
+          offset_mv: 0.0,
 
           # Telemetry - values that should be sent to the web interface/iot platform
-          co_ppm: 		0.0,
-  	  temperature_c: 	0.0,
-  	  humidity_rh: 		0.0,
-  	  pressure_pa: 		0.0,
-  	  dew_point_c: 		0.0,
-  	  gas_resistance_ohms:  0.0,
-          cpu_temperature: 	0.0,       
-	  adc_status:  		:no_reading, # :ok | :error_i2c_bus | :no_reading
-  	  temp_status:		:no_reading, # :ok | :error_i2c_bus | :no_reading
-          timestamp_ms: 	0,
+          co_ppm: 0.0,
+  	      temperature_c: 0.0,
+  	      humidity_rh: 0.0,
+  	      pressure_pa: 0.0,
+  	      dew_point_c: 0.0,
+  	      gas_resistance_ohms: 0.0,
+          cpu_temperature: 0.0,       
+	      adc_status: :no_reading,  # :ok | :error_i2c_bus | :no_reading
+  	      temp_status: :no_reading, # :ok | :error_i2c_bus | :no_reading
+          timestamp_ms: 0,
 
           # Diagnostics - these valus should be sent to webinterface / iot plaform too.
-          a0_mv: 		0.0, # A0 reference channel voltage — should stay ~2000mv
+          a0_mv: 0.0, # A0 reference channel voltage — should stay ~2000mv
 
-          a1_mv: 		0.0, # A1 signal channel voltage — 
-				     # raw voltage from the analog circuits where the TGS5042 is attached
+          a1_mv: 0.0, # A1 signal channel voltage — 
+				      # raw voltage from the analog circuits where the TGS5042 is attached
 
-          co_signal_mv: 	0.0, # median of co_signal_samples — voltage in millivolts. 
-				     # This voltage is then passed to mv_to_ppm() to produce ppm
+          co_signal_mv: 0.0, # median of co_signal_samples — voltage in millivolts. 
+				             # This voltage is then passed to mv_to_ppm() to produce ppm
 
-          co_signal_samples: 	[]   # 11 raw (A1×2)-A0 values in millivolts. Median of this list = co_signal_mv
+          co_signal_samples: [] # 11 raw (A1×2)-A0 values in millivolts. Median of this list = co_signal_mv
         }
 
         # Start first sample immediately
@@ -232,22 +232,22 @@ defmodule GasSensor.Sensor do
           # Don't send internal metrics
           
           # Telemetry
-          co_ppm: 	 	nil,
-          temperature_c: 	nil,
-          humidity_rh: 		nil,
-          pressure_pa: 		nil,
-          dew_point_c: 		nil,
-          gas_resistance_ohms:  nil,
-          cpu_temperature: 	nil,
-          adc_status:  		:error_i2c_bus,
-          temp_status: 		:error_i2c_bus,
-          timestamp_ms: 	nil,
+          co_ppm: nil,
+          temperature_c: nil,
+          humidity_rh: nil,
+          pressure_pa: nil,
+          dew_point_c: nil,
+          gas_resistance_ohms: nil,
+          cpu_temperature: nil,
+          adc_status: :error_i2c_bus,
+          temp_status: :error_i2c_bus,
+          timestamp_ms: nil,
 
           # Diagnostics
-          a0_mv: 		nil, 
-          a1_mv: 		nil, 
-          co_signal_mv:         nil, 
-          co_signal_samples: 	nil 
+          a0_mv: nil, 
+          a1_mv: nil, 
+          co_signal_mv: nil, 
+          co_signal_samples: nil 
         })
         {:stop, reason}
     end
