@@ -289,23 +289,33 @@ defmodule GasSensor.Sensor do
      # Read cpu temperature
      {:ok, cpu_temp } =  GasSensor.HardwareTemp.read_cpu_temp()
 
-      # 
-      # 11 samples for median filter
-      samples = for _ <- 1..11, do: read_ads1115(state.i2c)
+     # Take 11 samples and use them to do median filtering:
+     # Collect samples (which are now {:ok, map})
+     samples = for _ <- 1..11, do: read_ads1115(state.i2c)
 
-      # Separate good reads from failed reads
-      {good, bad} = Enum.split_with(samples, fn
-        {:ok, _} -> true
-           _     -> false
-       end)
+     # Separate good reads from failed reads
+     {good_results, _bad} = Enum.split_with(samples, fn
+      {:ok, _} -> true
+       _        -> false
+     end)
 
-       # Extract values and calculate median
-       median_v =
-         good
-           |> Enum.map(fn {:ok, v} -> v end)
+     # Calculate medians only if we have enough good data
+     if length(good_results) > 0 do
+
+       # This is a anonymous helper function to extract a specific key and find its median
+         get_median = fn results, key ->
+           results
+           |> Enum.map(fn {:ok, map} -> map[key] end)
            |> Enum.sort()
-           |> Enum.at(div(length(good), 2))
+           |> Enum.at(div(length(results), 2))
+         end
+ 
+       # Calculate the 3 medians
+       median_diff   = get_median.(good_results, :differential)
+       median_v_ref  = get_median.(good_results, :v_ref)
+       median_v_amp  = get_median.(good_results, :v_op_amp)
 
+       final_ppm = convert_to_ppm(differential, bme680_data.temperature_c) 
           # Update the Agent for non-blocking reads
           GasSensor.ReadingAgent.update(updated_state)
 
@@ -356,7 +366,9 @@ defmodule GasSensor.Sensor do
       # 3. Calculate differential
       # This removes the ~2.0V bias of the reference singal to isolate the sensor signal
       differential = v_op_amp - v_ref
-      {:ok, differential}
+
+      # Return a map containing all three calculated values
+      {:ok, %{ differential: differential, v_ref: v_ref, v_op_amp: v_op_amp }}
     else
       {:error, reason} -> {:error, reason}
     end
