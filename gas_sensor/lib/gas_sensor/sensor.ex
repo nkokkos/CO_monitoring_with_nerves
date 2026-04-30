@@ -348,8 +348,8 @@ defmodule GasSensor.Sensor do
 
   defp read_ads1115(state.ref) do 
   
-    with {:ok, raw_a0} <- read_channel(config.msb_a0, state.ref),
-         {:ok, raw_a1} <- read_channel(config.msb_a1, state.ref) 
+    with {:ok, raw_a0} <- read_channel(@config_msb_a0, state.ref),
+         {:ok, raw_a1} <- read_channel(@config_msb_a1, state.ref) 
     do
       # 1. Convert raw counts to volts
       v_ref    = raw_a0 * @volts_per_count
@@ -387,8 +387,8 @@ defmodule GasSensor.Sensor do
     
     # If any step fails, it bubble the error to the caller
     with :ok <- Circuits.I2C.write(i2c_ref, @ads1115_addr, <<@reg_config, config_msb, @config_lsb>>),
-         :ok <- wait_for_ready(ref),
-         {:ok, raw_value} <- read_conversion(ref) do
+         :ok <- wait_for_ready(i2c_ref),
+         {:ok, raw_value} <- read_conversion(i2c_ref) do
     
       # If everything succeeded, we return the final result
       {:ok, raw_value}
@@ -418,8 +418,8 @@ defmodule GasSensor.Sensor do
   # This code — ONE atomic I2C transaction
   # Circuits.I2C.write_read(ref, @ads1115_addr, <<@reg_conversion>>, 2)
   # write and read happen without releasing the bus between them
-  defp read_conversion(state.ref)
-    case Circuits.I2C.write_read(state.ref,@ads1115_addr, <<@reg_conversion>>, 2) do
+  defp read_conversion(i2c_ref)
+    case Circuits.I2C.write_read(i2c_ref, @ads1115_addr, <<@reg_conversion>>, 2) do
       {:ok, <<msb, lsb>>} ->
         # Step 1 — Read  the 2 bytes and convert them to one 16-bit unsigned integer.
         #
