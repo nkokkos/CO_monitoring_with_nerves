@@ -354,7 +354,7 @@ defmodule GasSensor.Sensor do
 
       # 3. Calculate differential
       # This removes the ~2.0V bias of the reference singal to isolate the sensor signal
-      # differential = v_op_amp - v_ref
+      differential = v_op_amp - v_ref
       {:ok, differential}
     else
       {:error, reason} -> {:error, reason}
