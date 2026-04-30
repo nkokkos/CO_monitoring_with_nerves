@@ -287,30 +287,23 @@ defmodule GasSensor.Sensor do
      {:ok, bme680_data } =  BME280.measure(:bme680)
 
      # Read cpu temperature
-     {:ok, cpu_temp }    =  GasSensor.HardwareTemp.read_cpu_temp()
+     {:ok, cpu_temp } =  GasSensor.HardwareTemp.read_cpu_temp()
 
-    new_state =
-      case read_ads1115(state.i2c) do
-        {:ok, ppm} ->
-          # Add new sample to window (sliding window of last @num_samples)
-          window =
-            [ppm | state.window]
-            |> Enum.take(@num_samples)
+      # 11 samples for median filter
+      samples = for _ <- 1..11, do: read_ads1115(state.i2c)
 
-          # Calculate median only when window is full
-          filtered_ppm =
-            if length(window) == @num_samples do
-              median(window)
-            else
-              state.ppm
-            end
+      # Separate good reads from failed reads
+      {good, bad} = Enum.split_with(samples, fn
+        {:ok, _} -> true
+           _     -> false
+       end)
 
-          updated_state = %{
-            state
-            | ppm: filtered_ppm,
-              window: window,
-              status: :ok
-          }
+       # Extract values and calculate median
+       median_v =
+         good
+           |> Enum.map(fn {:ok, v} -> v end)
+           |> Enum.sort()
+           |> Enum.at(div(length(good), 2))
 
           # Update the Agent for non-blocking reads
           GasSensor.ReadingAgent.update(updated_state)
@@ -346,10 +339,10 @@ defmodule GasSensor.Sensor do
    
   end
 
-  defp read_ads1115(state.ref) do 
+  defp read_ads1115(i2c_ref) do 
   
-    with {:ok, raw_a0} <- read_channel(@config_msb_a0, state.ref),
-         {:ok, raw_a1} <- read_channel(@config_msb_a1, state.ref) 
+    with {:ok, raw_a0} <- read_channel(@config_msb_a0, i2c_ref),
+         {:ok, raw_a1} <- read_channel(@config_msb_a1, i2c_ref) 
     do
       # 1. Convert raw counts to volts
       v_ref    = raw_a0 * @volts_per_count
@@ -449,9 +442,9 @@ defmodule GasSensor.Sensor do
         #   3284  →  3284   (positive, no change needed)
         #
         # Subtracting 65536 (= 2^16) recovers the correct signed value:
-        #   65535 - 65536 = -1     ✅
-        #   32768 - 65536 = -32768 ✅
-        #   3284  stays as  3284   ✅
+        #   65535 - 65536 = -1     
+        #   32768 - 65536 = -32768 
+        #   3284  stays as  3284   
         raw = if raw > 32767, do: raw - 65536, else: raw
         
         # We could use the following line too, instead of steps 1 and 2 above 
@@ -494,8 +487,55 @@ defmodule GasSensor.Sensor do
     end
   end
 
+# This is for the correction factor used in the appendinx 2
+defp get_correction_factor(temp) do
+  #Immediately turn whatever we got into a whole number (Integer)
+  # round() works on both floats (22.5 -> 23) and integers (23 -> 23)
+  target_temp = round(temp)
+
+  # lookup the @temp_cf_table
+  case Map.get(@temp_cf_table, target_temp) do
+    # if found, return the number from the look up table
+    factor when is_number(factor) -> 
+      factor
+
+    # Not in the map (too hot or too cold)
+    # for the edges, just return the 2 last extremes known.
+    nil ->
+      cond do
+        target_temp < -10 -> 0.752
+        target_temp > 55  -> 1.138
+        true              -> 1.0
+      end
+  end
+end
+
+
   # this need to be fixed, there is an error here...
   defp raw_to_ppm(raw) do
+   
+  #According to the datasheet at 6-3:
+  #6-3 Temperature compensation
+  # It is necessary to continuously write the thermistor output into the microprocessor. Inside the
+  # microprocessor, temperature compensation is carried
+  # out by using the compensation coefficient table shown in Appendix 2. 
+  # CO sensitivity at 20˚C (α) is calculate by the following equation:
+  # α = αt / CF
+  # where:
+  # CF = compensation coefficient at t˚ αt = CO sensitivity at t˚C
+  # 6-4 Calculation of CO concentration
+  # CO concentration (C) can be calculated by using
+  # sensor output (Vout), sensor output in clean air (V0),
+  # CO sensitivity at 20 ˚C (α), and feedback resistor (Rf)
+  # in the following formula:
+  # C = (V0 – Vout) / (α × Rf) [Equation 1]
+  # When high accuracy is required, temperature
+  # dependency of an op-amp should be considered
+  
+  # Please note, that since we use an non inverting analog setup in our 
+  # circuits the correct formula for our case is:
+  # C = (Vout - V0) / (α × Rf) where V0 = Offset voltage at 0 CO ppm
+
     # Step 1: raw ADC to millivolts (PGA ±2.048V = 0.0625mV per bit)
     mv = raw * 0.0625
 
