@@ -10,16 +10,6 @@ defmodule GasSensor.History do
   The sensor readings include readings from the breakout board BME680 plus
   carbon monoxide ppm readings from the ads1115 adc module
 
-  Each reading is a tuple defined as follows in the following example
-  co_ppm: 50, 		# this is calculated from adc samples
-  temperature_c: 34, 	# bme680 breakout board
-  humidity_rh: 80,      # bme680 breakout board
-  dew_point_c: 2.629,   # bme680 breakout board
-  gas_resistance_ohms: 5279.474, # bme680 breakout board
-  pressure_pa: 100818.86273677988, # bme680 breaout board
-  cpu_temperature: 35,  # read from the rpi0 cpu 
-  status: :ok or :error # status attached to the reading
-
   ## Architecture
 
   ```
@@ -59,21 +49,23 @@ defmodule GasSensor.History do
 
   ## Usage
 
-      # Add a reading (called by Core.Sensor GenServer)
-      reading = tuple that contains the timestamp and all the readings
-      Core.History.add_sample(reading, :ok)
+      # Note!! Adding samples to the history is done through
+      # GasSensor.ReadingAgent by calling the following function: 
+      # GasSensor.History.record_to_ets(final_timestamp, reading_with_timestamp)
+      # inside the GasSensor.ReadingAgent.update function
+      # Read the GasSensor.ReadingAgent.update function for more.
 
       # Get last 24 hours
-      samples = Core.History.get_last_24h()
+      samples = GasSensor.History.get_last_24h()
    
       # Get last 7 days 
-      samples = Core.History.get_last_7_days()
+      samples = GasSensor.History.get_last_7_days()
    
       # Get downsampled data for graph (400 points max)
-      graph_data = Core.History.get_for_graph(400)
+      graph_data = GasSensor.History.get_for_graph(400)
 
       # Get specific time range
-      range = Core.History.get_range(
+      range = GasSensor.History.get_range(
         DateTime.add(DateTime.utc_now(), -1, :hour),
         DateTime.utc_now()
       )
@@ -113,51 +105,8 @@ defmodule GasSensor.History do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  @doc """
-  Adds a new sample to the history.
-
-  Called by Core.Sensor GenServer after each median-filtered reading.
-  Automatically includes timestamp.
-
-  ## Examples
-    ok_reading = %{
-      co_ppm: 50,
-      temperature_c: 34,
-      humidity_rh: 80,
-      dew_point_c: 2.629,
-      gas_resistance_ohms: 5279.474,
-      pressure_pa: 100818.86273677988,
-      cpu_temperature: 35,
-      status: :ok # Add a status flag for easy filtering
-    }
-
-    null_reading = %{
-      co_ppm: nil,
-      temperature_c: nil,
-      humidity_rh: nil,
-      dew_point_c: nil,
-      gas_resistance_ohms: nil,
-      pressure_pa: nil,
-      cpu_temperature: nil,
-      status: :error # Add a status flag for easy filtering
-    }
- 
-      Core.History.add_sample(ok_reading,   :ok)
-      Core.History.add_sample(null_reading, :error)
-  """
-  def add_sample(%{
-    co_ppm: _,
-    temperature_c: _,
-    humidity_rh: _,
-    dew_point_c: _,
-    gas_resistance_ohms: _,
-    pressure_pa: _,
-    cpu_temperature: _
-  } = reading, status) when is_atom(status) do 
-    {timestamp, reliable?} = GasSensor.Timestamp.now_with_reliability()
-    final_timestamp =
-      if reliable?, do: timestamp, else: GasSensor.Timestamp.provisional_timestamp()
-    :ets.insert(@table_name, {final_timestamp, reading})
+  def record_to_ets(final_timestamp, reading_with_metadata) do 
+    :ets.insert(@table_name, {timestamp, reading})
     :ok
   end
 

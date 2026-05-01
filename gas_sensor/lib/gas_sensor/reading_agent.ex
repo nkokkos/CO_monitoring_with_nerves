@@ -37,16 +37,18 @@ defmodule GasSensor.ReadingAgent do
   # time_reliable is true when NTP has synced (RTC-less systems)
 
   @default_reading %{
-    co_ppm:               0.0,
-    temperature_c:        0.0,
-    humidity_rh:          0.0,
-    dew_point_c:          0.0,
-    gas_resistance_ohms:  0.0,
-    pressure_pa:	  0.0, 
-    cpu_temperature:      0.0,
-    timestamp:            nil,  
-    time_reliable:	  false,
-    status:               :not_started,
+    co_ppm: 0.0,
+    temperature_c: 0.0,
+    humidity_rh: 0.0,
+    pressure_pa: 0.0,
+    dew_point_c: 0.0,
+    gas_resistance_ohms: 0.0,
+    cpu_temperature: 0.0,
+    vref: 0.0,
+    vsensor:0.0,
+    vsensor_offset:0.0,
+    vdifferential:0.0,
+    vref_variance: 0.0,
   }
 
   @agent_name __MODULE__
@@ -123,9 +125,28 @@ defmodule GasSensor.ReadingAgent do
 
   ## Parameters
 
-    * `reading` - Map containing :ppm, :window, :status, and all the othe readings
+    * `reading` - Map contains the values we want to saves
+ 
+  @default_reading %{
+    co_ppm: 0.0,
+    temperature_c: 0.0,
+    humidity_rh: 0.0,
+    pressure_pa: 0.0,
+    dew_point_c: 0.0,
+    gas_resistance_ohms: 0.0,
+    cpu_temperature: 0.0,
+    vref: 0.0,
+    vsensor:0.0,
+    vsensor_offset:0.0,
+    vdifferential:0.0,
+    vref_variance:0.0,
+  }
+
+    GasSensor.History.add_sample(@default_reading, :ok)
+    GasSensor.History.add_sample(null_reading, :error)
   """
-  def update(reading) when is_map(reading) do
+  def add_sample(reading, status) when is_atom(status) and is_map(reading) do
+  
     # Check time reliability
     {timestamp, reliable?} = GasSensor.Timestamp.now_with_reliability()
 
@@ -143,8 +164,15 @@ defmodule GasSensor.ReadingAgent do
       reading
       |> Map.put(:timestamp, final_timestamp)
       |> Map.put(:time_reliable, reliable?)
-
+      |> Map.put(:status, status)
+  
     Agent.update(@agent_name, fn _ -> reading_with_timestamp end)
+
+    # Synchronize with History
+    # We pass the EXACT same map and timestamp to the ETS table
+    GasSensor.History.record_to_ets(final_timestamp, reading_with_timestamp)
+
+    :ok
   end
 
   @doc """

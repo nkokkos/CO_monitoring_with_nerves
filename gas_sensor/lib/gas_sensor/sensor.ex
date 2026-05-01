@@ -132,10 +132,30 @@ defmodule GasSensor.Sensor do
   # When high accuracy is required, temperature
   # dependency of an op-amp should be considered
   
-  # Please note, that since we use an non inverting analog setup in our 
+  # Note to myself: since we use an non inverting analog setup in our 
   # circuits the correct formula for our case is:
   # C = (Vout - V0) / (α × Rf) where V0 = Offset voltage at 0 CO ppm 
 
+  # Reading Attribute. 
+  # Contains all the fields that need to be filled.
+  # Use this module attribute as a empty reading 
+  # as a blueprint for the beginning of the sampling process
+  # or in case an error, happens, send this over to 
+  # the reading agent along with an error.
+  @empty_reading %{
+    co_ppm: nil,
+    temperature_c: nil,
+    humidity_rh: nil,
+    pressure_pa: nil,
+    dew_point_c: nil,
+    gas_resistance_ohms: nil,
+    cpu_temperature: nil,
+    vref: nil,
+    vsensor: nil,
+    vsensor_offset: nil,
+    vdifferential: nil,
+    vref_variance: nil,
+  }
 
   # ── Public API ──────────────────────────────────────────
 
@@ -183,74 +203,24 @@ defmodule GasSensor.Sensor do
     #try to open the i2c bus
     case Circuits.I2C.open(i2c_bus) do
       {:ok, ref} ->
-        state = %{
-          
-          # This is the default initial state when we try open the i2c bus for the first
-          # time.
+        state = 
+          @empty_reading
+          |> Map.merge(%{i2c: ref})
 
-          # Internal to this genserver instance 
-          i2c: ref,
-          phase: :calibrating,	#:calibrating | :running
-          calibration_samples: [],
-          offset_mv: 0.0,
-
-          # Telemetry - values that should be sent to the web interface/iot platform
-          co_ppm: 0.0,
-  	      temperature_c: 0.0,
-  	      humidity_rh: 0.0,
-  	      pressure_pa: 0.0,
-  	      dew_point_c: 0.0,
-  	      gas_resistance_ohms: 0.0,
-          cpu_temperature: 0.0,       
-	      adc_status: :no_reading,  # :ok | :error_i2c_bus | :no_reading
-  	      temp_status: :no_reading, # :ok | :error_i2c_bus | :no_reading
-          timestamp_ms: 0,
-
-          # Diagnostics - these valus should be sent to webinterface / iot plaform too.
-          a0_mv: 0.0, # A0 reference channel voltage — should stay ~2000mv
-
-          a1_mv: 0.0, # A1 signal channel voltage — 
-				      # raw voltage from the analog circuits where the TGS5042 is attached
-
-          co_signal_mv: 0.0, # median of co_signal_samples — voltage in millivolts. 
-				             # This voltage is then passed to mv_to_ppm() to produce ppm
-
-          co_signal_samples: [] # 11 raw (A1×2)-A0 values in millivolts. Median of this list = co_signal_mv
-        }
-
-        # Start first sample immediately
-        send(self(), :collect_sample)
-        Logger.info("GasSensor started on #{i2c_bus}")
-        {:ok, state}
+      # Start first sample immediately
+      send(self(), :collect_sample)
+      Logger.info("GasSensor started on #{i2c_bus}")
+      {:ok, state}
 
       {:error, reason} ->
-        Logger.error("Failed to open I2C bus #{i2c_bus}: #{inspect(reason)}")
-        # Update Agent with error status even if we can't start
-        GasSensor.ReadingAgent.update(%{
-          
-          # Internal
-          # Don't send internal metrics
-          
-          # Telemetry
-          co_ppm: nil,
-          temperature_c: nil,
-          humidity_rh: nil,
-          pressure_pa: nil,
-          dew_point_c: nil,
-          gas_resistance_ohms: nil,
-          cpu_temperature: nil,
-          adc_status: :error_i2c_bus,
-          temp_status: :error_i2c_bus,
-          timestamp_ms: nil,
-
-          # Diagnostics
-          a0_mv: nil, 
-          a1_mv: nil, 
-          co_signal_mv: nil, 
-          co_signal_samples: nil 
-        })
-        {:stop, reason}
+      # Error Reason. Use the empty variable and add the reason
+      error_reading = 
+        @empty_reading
+          |> Map.put(:error_message, "Hardware i2c error: #{inspect(reason)}")
+      GasSensor.ReadingAgent.add_sample(error_reading, :error)
+      {:stop, reason}
     end
+
   end
 
   @impl true
@@ -265,90 +235,77 @@ defmodule GasSensor.Sensor do
 
   @impl true
   def handle_info(:collect_sample, state) do
+    
+    result = 
+      with 
+        # Read the data from the BME680 breakout board
+        {:ok, bme680_data } =  BME280.measure(:bme680),
+        # Read cpu temperature from the rasberry pi
+        {:ok, cpu_temp } =  GasSensor.HardwareTemp.read_cpu_temp(),
+        # Take 11 samples and use them to do median filtering:
+        # example:
+        # samples = { {differential1,vref1,vsensor1},{differential2,vref2,vsensor2},{..}}...
+        samples = for _ <- 1..11, do: read_ads1115(state.i2c),
+      do
+        # Use unzip library to get each individual list.
+        {differential_list, vref_list, vsensor_list} = Enum.unzip(samples)
+        
+        #calculate the median of each stream of data:
+        vref_median = median(vref_list)
+        vsensor_median = median(vsensor_list)
+        vdifferential_median = median(differential_list)
+        vref_variance = variance(vref_list)
 
-     # iex> {:ok, bmp} = BMP280.start_link(bus_name: "i2c-1", bus_address: 0x77)
-     # 3{:ok, #PID<0.29929.0>}
-     # iex> BMP280.measure(bmp)
-     # {:ok,
-     # %BMP280.Measurement{
-     #   altitude_m: 138.96206905098805,
-     #   dew_point_c: 2.629181073094435,
-     #   gas_resistance_ohms: 5279.474749704044,
-     #   humidity_rh: 34.39681642351278,
-     #   pressure_pa: 100818.86273677988,
-     #   temperature_c: 18.645856498100876,
-     #   timestamp_ms: 885906
-     # }}
+        # finally, calculate the ppm for the gas
+        final_ppm = convert_to_ppm(vdifferential_median, 
+                                   bme680_data.temperature_c, 
+                                   state.vsensor_offset) 
 
-     # BMP280.force_altitude(bmp, 100)
-     # :ok
-   
-     # Read the data from the BME280.measure(:bme680)
-     {:ok, bme680_data } =  BME280.measure(:bme680)
+        # Update the state with all the data
+        new_state = %{ state |
+          co_ppm: final_ppm,
+          temperature_c: bme680_data.temperature_c,
+          humidity_rh: bme680_data.humidity_rh,
+          pressure_pa: bme680_data.pressure_pa,
+          dew_point_c: bme680_data.dew_point_c,
+          gas_resistance_ohms: bme680_data.gas_resistance_ohms,
+          cpu_temperature: cpu_temp,
+          vref:vref_median,
+          vsensor: vsensor_median,
+          vsensor_offset: 0.0,
+          vdifferential: vdifferential_median,
+          vref_variance: vref_variance,
+        }
+     
+        # Update the Agent for non-blocking reads
+        # This updated the History too. Read the code of
+        # the ReadingAgent to understand more
+        GasSensor.ReadingAgent.add_sample(new_state, :ok)
+        # In Elixir, the last line executed is the return value of the entire block
+        # so here, the new_state will be equal to the result above.
 
-     # Read cpu temperature
-     {:ok, cpu_temp } =  GasSensor.HardwareTemp.read_cpu_temp()
-
-     # Take 11 samples and use them to do median filtering:
-     # Collect samples (which are now {:ok, map})
-     samples = for _ <- 1..11, do: read_ads1115(state.i2c)
-
-     # Separate good reads from failed reads
-     {good_results, _bad} = Enum.split_with(samples, fn
-      {:ok, _} -> true
-       _        -> false
-     end)
-
-     # Calculate medians only if we have enough good data
-     if length(good_results) > 0 do
-
-       # This is a anonymous helper function to extract a specific key and find its median
-         get_median = fn results, key ->
-           results
-           |> Enum.map(fn {:ok, map} -> map[key] end)
-           |> Enum.sort()
-           |> Enum.at(div(length(results), 2))
-         end
- 
-       # Calculate the 3 medians
-       median_diff   = get_median.(good_results, :differential)
-       median_v_ref  = get_median.(good_results, :v_ref)
-       median_v_amp  = get_median.(good_results, :v_op_amp)
-
-       final_ppm = convert_to_ppm(differential, bme680_data.temperature_c) 
-          # Update the Agent for non-blocking reads
-          GasSensor.ReadingAgent.update(updated_state)
-
-          # Add to 24-hour history (only when window is full = valid median)
-          if length(window) == @num_samples do
-            GasSensor.History.add_sample(filtered_ppm, :ok)
-          end
-
-          updated_state
-
+        # returns the new_state and it assigns it to result
+        new_state
+      else 
         {:error, reason} ->
-          Logger.warning("Failed to read sensor: #{inspect(reason)}")
-          error_state = %{state | status: :error}
+        new_state = 
+          state 
+            |> Map.merge(@empty_reading)
+            |> Map.put(:error_message, "Hardware i2c error: #{inspect(reason)}")
+      
+        GasSensor.ReadingAgent.add_sample(new_state, :error)  
 
-          # Update Agent with error status
-          GasSensor.ReadingAgent.update(error_state)
-
-          # Add error to history with 0.0 PPM
-          GasSensor.History.add_sample(0.0, :error)
-
-          error_state
+        #returns the new state and it assigns it to result
+        new_state
       end
 
     # Schedule next sample
     Process.send_after(self(), :collect_sample, @sample_interval)
-    {:noreply, new_state}
+
+    {:noreply, result}
   end
 
   # ── Private Functions ────────────────────────────────────
-
-  defp publish_agent(state) do
-   
-  end
 
   defp read_ads1115(i2c_ref) do 
   
@@ -368,7 +325,7 @@ defmodule GasSensor.Sensor do
       differential = v_op_amp - v_ref
 
       # Return a map containing all three calculated values
-      {:ok, %{ differential: differential, v_ref: v_ref, v_op_amp: v_op_amp }}
+      {:ok, %{ differential: differential, vref: v_ref, vsensor: v_op_amp }}
     else
       {:error, reason} -> {:error, reason}
     end
@@ -402,15 +359,16 @@ defmodule GasSensor.Sensor do
       # If ANY step above returned {:error, reason}, it lands here.
       # We simply pass that error back up the chain.
       {:error, reason} -> {:error, reason}
-    
-      # Optional: Catch-all for unexpected returns
-      error -> {:error, error}
+      # Optional: Catch-all for unexpected returns, 
+      # Check if the last line is enabled what happens.
+      # error -> {:error, error}
     end
 
   end
  
 
-  # ── Read Conversion Result ────────────────────────────────
+  # ── Read Conversion Result  ────────────────────────────────
+  
   # Reads the 16-bit signed result from the conversion register.
   #
   # Uses write_read (atomic):
@@ -464,7 +422,7 @@ defmodule GasSensor.Sensor do
         # but we chose the manual above for clarity.
         # Note, that we need to include the library Bitwise for this to work
         #<<raw::signed-integer-size(16)>> = <<msb, lsb>> # Elixir does it all in one line
-
+        
       {:ok, raw}
 
     {:error, reason} ->
@@ -473,7 +431,8 @@ defmodule GasSensor.Sensor do
 
   end
 
-  # We start polling for 20 times every 10 msec
+  # We start polling for 20 times every 10 msec, so the maximum
+  # time will spend polling would 200 msec
   defp wait_for_ready(ref, address) do
     do_poll(ref, address, 20)
   end
@@ -500,64 +459,76 @@ defmodule GasSensor.Sensor do
     end
   end
 
-# This is for the correction factor used in the appendinx 2
-defp get_correction_factor(temp) do
-  #Immediately turn whatever we got into a whole number (Integer)
-  # round() works on both floats (22.5 -> 23) and integers (23 -> 23)
-  target_temp = round(temp)
+ # This is for the correction factor used in the appendinx 2
+  defp get_correction_factor(temp) do
+    #Immediately turn whatever we got into a whole number (Integer)
+    # round() works on both floats (22.5 -> 23) and integers (23 -> 23)
+    target_temp = round(temp)
 
-  # lookup the @temp_cf_table
-  case Map.get(@temp_cf_table, target_temp) do
-    # if found, return the number from the look up table
-    factor when is_number(factor) -> 
-      factor
+    # lookup the @temp_cf_table
+    case Map.get(@temp_cf_table, target_temp) do
+      # if found, return the number from the look up table
+      factor when is_number(factor) -> 
+        factor
 
-    # Not in the map (too hot or too cold)
-    # for the edges, just return the 2 last extremes known.
-    nil ->
-      cond do
-        target_temp < -10 -> 0.752
-        target_temp > 55  -> 1.138
-        true              -> 1.0
-      end
+       # Not in the map (too hot or too cold)
+       # for the edges, just return the 2 last extremes known.
+       nil ->
+         cond do
+           target_temp < -10 -> 0.752
+           target_temp > 55  -> 1.138
+           true              -> 1.0
+        end
+    end
+
   end
-end
 
 
-# Final PPM conversion using the differential
-#According to the datasheet at 6-3:
-#6-3 Temperature compensation
-# It is necessary to continuously write the thermistor output into the microprocessor. Inside the
-# microprocessor, temperature compensation is carried
-# out by using the compensation coefficient table shown in Appendix 2. 
-# CO sensitivity at 20˚C (α) is calculate by the following equation:
-# α = αt / CF
-# where:
-# CF = compensation coefficient at t˚ αt = CO sensitivity at t˚C
-# 6-4 Calculation of CO concentration
-# CO concentration (C) can be calculated by using
-# sensor output (Vout), sensor output in clean air (V0),
-# CO sensitivity at 20 ˚C (α), and feedback resistor (Rf)
-# in the following formula:
-# C = (V0 – Vout) / (α × Rf) [Equation 1]
-# When high accuracy is required, temperature
-# dependency of an op-amp should be considered
+  # Final PPM conversion using the differential
+  #According to the datasheet at 6-3:
+  #6-3 Temperature compensation
+  # It is necessary to continuously write the thermistor output into the microprocessor. Inside the
+  # microprocessor, temperature compensation is carried
+  # out by using the compensation coefficient table shown in Appendix 2. 
+  # CO sensitivity at 20˚C (α) is calculate by the following equation:
+  # α = αt / CF
+  # where:
+  # CF = compensation coefficient at t˚ αt = CO sensitivity at t˚C
+  # 6-4 Calculation of CO concentration
+  # CO concentration (C) can be calculated by using
+  # sensor output (Vout), sensor output in clean air (V0),
+  # CO sensitivity at 20 ˚C (α), and feedback resistor (Rf)
+  # in the following formula:
+  # C = (V0 – Vout) / (α × Rf) [Equation 1]
+  # When high accuracy is required, temperature
+  # dependency of an op-amp should be considered
   
-# Please note, that since we use an non inverting analog setup in our 
-# circuits the correct formula for our case is:
-# C = (Vout - V0) / (α × Rf) where V0 = Offset voltage at 0 CO ppm
+  # Please note, that since we use an non inverting analog setup in our 
+  # circuits the correct formula for our case is:
+  # C = (Vout - V0) / (α × Rf) where V0 = Offset voltage at 0 CO ppm
 
-defp convert_to_ppm(differential, temp) do
-  cf = get_correction_factor(temp)
+  defp convert_to_ppm(differential, temp, vsensor_offset) do
+    cf = get_correction_factor(temp)
   
-  # subtract any leftover calibration offset if necessary
-  true_signal = differential - (@calibrated_zero_offset * 2)
+    # subtract any leftover calibration offset if necessary
+    true_signal = differential - (vsensor_offset * 2)
   
-  alpha = (@sensitivity_na_per_ppm * 1.0e-9) * cf
+    alpha = (@sensitivity_na_per_ppm * 1.0e-9) * cf
 
-  # Since we can't have "negative" gas, this line ensure that we always sees 0.0 if the air is clean.
-  # clamp this to a valid range
-  (true_signal / (alpha * @r3_ohms)) |> max(0.0) |> min(10_000.0)
-end
+    # Since we can't have "negative" gas, this line ensure that we always sees 0.0 if the air is clean.
+    # clamp this to a valid range
+    (true_signal / (alpha * @r3_ohms)) |> max(0.0) |> min(10_000.0)
+  end
 
+  # Variance - This calculates the variance of the elements in a list
+  # Here, we use this to calculate the variance of the Vref signal to 
+  # to see if the reference voltages gets degrated over time.
+  # The closer we are to 0 the better we are. It calcualates 
+  defp variance(list) do
+    mean = Enum.sum(list) / length(list)
+    Enum.map(list, fn x -> (x - mean) * (x - mean) end)
+    |> Enum.sum()
+    |> Kernel./(length(list))
+  end
+  
 end
