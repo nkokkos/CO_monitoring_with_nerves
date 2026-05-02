@@ -29,7 +29,6 @@ defmodule GasSensor.Sensor do
   use GenServer
   require Logger
   import Bitwise
-  alias GasSensor.Timestamp
 
   # We use the breakout board ADS1115 adc for sampling the output of the sensor + reference voltage
   # https://www.skroutz.gr/s/54629997/Ads1115-I2c-16-Bit-Adc-4-Channel-Module.html
@@ -64,30 +63,29 @@ defmodule GasSensor.Sensor do
   # The ADS1115 has 4 registers. We will use two:
   #   0x00 → Conversion register  — holds the ADC result
   #   0x01 → Config register      — controls all chip settings
-  @reg_conversion = 0x00
-  @reg_config     = 0x01
+  @reg_conversion 0x00
+  @reg_config 0x01
 
   # We will sample the reference voltage of 2Volts at A0 and at A1 the TGS5042 signal voltage
-  @config_msb_a0    = 0xC3     # 1_100_001_1  → OS=1, MUX=AIN0/GND, PGA=±4.096V, single-shot
-  @config_msb_a1    = 0xD3     # 1_101_001_1  → OS=1, MUX=AIN1/GND, PGA=±4.096V, single-shot
-  @config_lsb       = 0x03     # 0_000_0_0_11 → DR=8SPS, comparator disabled
+  @config_msb_a0 0xC3     # 1_100_001_1  → OS=1, MUX=AIN0/GND, PGA=±4.096V, single-shot
+  @config_msb_a1 0xD3     # 1_101_001_1  → OS=1, MUX=AIN1/GND, PGA=±4.096V, single-shot
+  @config_lsb 0x03        # 0_000_0_0_11 → DR=8SPS, comparator disabled
 
-  @volts_per_count = 0.000125  # ±4.096V / 32768 counts = 125µV per LSB 
+  @volts_per_count 0.000125  # ±4.096V / 32768 counts = 125µV per LSB 
 
   # ASDS1115 configuration: 
   
-  #ADS1115 I2C address
+  # ADS1115 I2C address
   @ads1115_addr 0x48
   
-  @conversion_ms 140 	 # time to wait for the conversion register to get ready
-  @total_window  10_000  # how often we should we sample the inputs
-  @num_samples   11      # sample 11 times for the median filter
-  @sample_interval       div(@total_window, @num_samples)
+  @conversion_ms 140      # time to wait for the conversion register to get ready
+  @sample_interval 15_000 # how often we should we sample the inputs
+  @number_of_samples 11   # sample 11 times for the median filter
 
   # TGS_5042 Sensor calibration: 
   @sensitivity_na_per_ppm 1.525 	# this is the number printed on the module we got.
-  @r3_ohms 		  1_200_000     # feed back resistor connected to the mcp6042 Op amp
-  @divider_factor 	  ( 9.95 / (9.95 + 9.95) ) 
+  @r3_ohms 1_200_000                    # feed back resistor connected to the mcp6042 Op amp
+  @divider_factor ( 9.95 / (9.95 + 9.95) ) 
  
   # Temperature compensation table for TGS5042
   # This is based in the application note
@@ -136,11 +134,11 @@ defmodule GasSensor.Sensor do
   # circuits the correct formula for our case is:
   # C = (Vout - V0) / (α × Rf) where V0 = Offset voltage at 0 CO ppm 
 
-  # Reading Attribute. 
+  # Empty Reading Attribute. 
   # Contains all the fields that need to be filled.
   # Use this module attribute as a empty reading 
-  # as a blueprint for the beginning of the sampling process
-  # or in case an error, happens, send this over to 
+  # Use it as a blueprint for the beginning of the sampling process
+  # or in case of an  error, when it happens, send this over to 
   # the reading agent along with an error.
   @empty_reading %{
     co_ppm: nil,
@@ -207,18 +205,18 @@ defmodule GasSensor.Sensor do
           @empty_reading
           |> Map.merge(%{i2c: ref})
 
-      # Start first sample immediately
-      send(self(), :collect_sample)
-      Logger.info("GasSensor started on #{i2c_bus}")
-      {:ok, state}
+        # Start first sample immediately
+        send(self(), :collect_sample)
+        Logger.info("GasSensor started on #{i2c_bus}")
+        {:ok, state}
 
       {:error, reason} ->
-      # Error Reason. Use the empty variable and add the reason
-      error_reading = 
-        @empty_reading
-          |> Map.put(:error_message, "Hardware i2c error: #{inspect(reason)}")
-      GasSensor.ReadingAgent.add_sample(error_reading, :error)
-      {:stop, reason}
+        # Error Reason. Use the empty variable and add the reason
+        error_reading = 
+          @empty_reading
+            |> Map.put(:error_message, "Hardware i2c error: #{inspect(reason)}")
+            GasSensor.ReadingAgent.add_sample(error_reading, :error)
+        {:stop, reason}
     end
 
   end
@@ -237,75 +235,86 @@ defmodule GasSensor.Sensor do
   def handle_info(:collect_sample, state) do
     
     result = 
-      with 
-        # Read the data from the BME680 breakout board
-        {:ok, bme680_data } =  BME280.measure(:bme680),
-        # Read cpu temperature from the rasberry pi
-        {:ok, cpu_temp } =  GasSensor.HardwareTemp.read_cpu_temp(),
-        # Take 11 samples and use them to do median filtering:
-        # example:
-        # samples = { {differential1,vref1,vsensor1},{differential2,vref2,vsensor2},{..}}...
-        samples = for _ <- 1..11, do: read_ads1115(state.i2c),
-      do
-        # Use unzip library to get each individual list.
-        {differential_list, vref_list, vsensor_list} = Enum.unzip(samples)
-        
-        #calculate the median of each stream of data:
-        vref_median = median(vref_list)
-        vsensor_median = median(vsensor_list)
-        vdifferential_median = median(differential_list)
-        vref_variance = variance(vref_list)
 
-        # finally, calculate the ppm for the gas
-        final_ppm = convert_to_ppm(vdifferential_median, 
+       with {:ok, bme680_data } <- BME280.measure(:bme680),
+            {:ok, cpu_temp }    <- GasSensor.HardwareTemp.read_cpu_temp(),
+            {:ok, samples}      <- collect_samples(state.i2c, @number_of_samples) 
+       do
+
+         differential_list = Enum.map(samples, fn s -> s.differential end)
+         vref_list = Enum.map(samples, fn s -> s.vref end)
+         vsensor_list = Enum.map(samples, fn s -> s.vsensor end) 
+
+         # calculate the median of each stream of data:
+         vref_median = calculate_median(vref_list)
+         vsensor_median = calculate_median(vsensor_list)
+         vdifferential_median = calculate_median(differential_list)
+         vref_variance = variance(vref_list)
+
+         # finally, calculate the ppm for the gas
+         final_ppm = convert_to_ppm(vdifferential_median, 
                                    bme680_data.temperature_c, 
                                    state.vsensor_offset) 
 
-        # Update the state with all the data
-        new_state = %{ state |
-          co_ppm: final_ppm,
-          temperature_c: bme680_data.temperature_c,
-          humidity_rh: bme680_data.humidity_rh,
-          pressure_pa: bme680_data.pressure_pa,
-          dew_point_c: bme680_data.dew_point_c,
-          gas_resistance_ohms: bme680_data.gas_resistance_ohms,
-          cpu_temperature: cpu_temp,
-          vref:vref_median,
-          vsensor: vsensor_median,
-          vsensor_offset: 0.0,
-          vdifferential: vdifferential_median,
-          vref_variance: vref_variance,
-        }
+         # Update the state with all the data
+         new_state = %{ state |
+           co_ppm: final_ppm,
+           temperature_c: bme680_data.temperature_c,
+           humidity_rh: bme680_data.humidity_rh,
+           pressure_pa: bme680_data.pressure_pa,
+           dew_point_c: bme680_data.dew_point_c,
+           gas_resistance_ohms: bme680_data.gas_resistance_ohms,
+           cpu_temperature: cpu_temp,
+           vref: vref_median,
+           vsensor: vsensor_median,
+           vsensor_offset: 0.0,
+           vdifferential: vdifferential_median,
+           vref_variance: vref_variance,
+         }
      
-        # Update the Agent for non-blocking reads
-        # This updated the History too. Read the code of
-        # the ReadingAgent to understand more
-        GasSensor.ReadingAgent.add_sample(new_state, :ok)
-        # In Elixir, the last line executed is the return value of the entire block
-        # so here, the new_state will be equal to the result above.
+         # Update the Agent for non-blocking reads
+         # This updates the History too. Read the code of
+         # the ReadingAgent to understand more
+         GasSensor.ReadingAgent.add_sample(new_state, :ok)
+        
+         # In Elixir, the last line executed is the return value of the entire block
+         # so here, the new_state will be equal to the result above.
 
-        # returns the new_state and it assigns it to result
-        new_state
-      else 
-        {:error, reason} ->
-        new_state = 
-          state 
-            |> Map.merge(@empty_reading)
-            |> Map.put(:error_message, "Hardware i2c error: #{inspect(reason)}")
+         # Note this!! It returns the new_state and it assigns it to result!!! 
+         new_state
+        else 
+          {:error, reason} ->
+            new_state = 
+              state 
+                |> Map.merge(@empty_reading)
+                |> Map.put(:error_message, "Hardware i2c error: #{inspect(reason)}")
       
-        GasSensor.ReadingAgent.add_sample(new_state, :error)  
+             GasSensor.ReadingAgent.add_sample(new_state, :error)  
 
-        #returns the new state and it assigns it to result
-        new_state
-      end
+             #returns the new state and it assigns it to result
+             new_state
+       end
 
-    # Schedule next sample
-    Process.send_after(self(), :collect_sample, @sample_interval)
+      # Schedule next sample
+      Process.send_after(self(), :collect_sample, @sample_interval)
 
-    {:noreply, result}
+      {:noreply, result}
   end
 
   # ── Private Functions ────────────────────────────────────
+
+  defp collect_samples(i2c, n) do
+    results = for _ <- 1..n, do: read_ads1115(i2c)
+
+    # Check if any sample failed
+    if Enum.all?(results, fn r -> match?({:ok, _}, r) end) do
+      # All good — unwrap the :ok tuples into plain maps
+      {:ok, Enum.map(results, fn {:ok, v} -> v end)}
+    else
+      # Find and return the first error
+      Enum.find(results, fn r -> match?({:error, _}, r) end)
+    end
+  end
 
   defp read_ads1115(i2c_ref) do 
   
@@ -340,7 +349,7 @@ defmodule GasSensor.Sensor do
   # config_msb selects the channel:
   # 0xC3 → AIN0/GND (my A0 reference voltage)
   # 0xD3 → AIN1/GND (my A1 signal voltage)
-  defp read_channel(config_msb, i2c_ref)
+  defp read_channel(config_msb, i2c_ref) do 
   
     # Trigger conversion.
     # Write 3 bytes to the chip:
@@ -348,11 +357,11 @@ defmodule GasSensor.Sensor do
     #   byte 2: config_msb        → channel + PGA + single-shot + start
     #   byte 3: config_lsb        → 8 SPS + comparator disabled
     
-    # If any step fails, it bubble the error to the caller
+    # If any step fails, it will bubble the error to the caller
     with :ok <- Circuits.I2C.write(i2c_ref, @ads1115_addr, <<@reg_config, config_msb, @config_lsb>>),
-         :ok <- wait_for_ready(i2c_ref),
-         {:ok, raw_value} <- read_conversion(i2c_ref) do
-    
+         :ok <- wait_for_ready(i2c_ref, @ads1115_addr),
+         {:ok, raw_value} <- read_conversion(i2c_ref) 
+    do
       # If everything succeeded, we return the final result
       {:ok, raw_value}
     else
@@ -382,7 +391,7 @@ defmodule GasSensor.Sensor do
   # This code — ONE atomic I2C transaction
   # Circuits.I2C.write_read(ref, @ads1115_addr, <<@reg_conversion>>, 2)
   # write and read happen without releasing the bus between them
-  defp read_conversion(i2c_ref)
+  defp read_conversion(i2c_ref) do 
     case Circuits.I2C.write_read(i2c_ref, @ads1115_addr, <<@reg_conversion>>, 2) do
       {:ok, <<msb, lsb>>} ->
         # Step 1 — Read  the 2 bytes and convert them to one 16-bit unsigned integer.
@@ -530,5 +539,22 @@ defmodule GasSensor.Sensor do
     |> Enum.sum()
     |> Kernel./(length(list))
   end
-  
+ 
+  # Calculates the median given a list=values
+  defp calculate_median(values) do
+    sorted = Enum.sort(values)
+    count = length(sorted)
+
+    if rem(count, 2) == 1 do
+      # Odd: Pick the middle
+      Enum.at(sorted, div(count, 2))
+    else
+      # Even: Average the two middle points
+      mid = div(count, 2)
+      (Enum.at(sorted, mid - 1) + Enum.at(sorted, mid)) / 2
+    end
+  end
+
+
+
 end

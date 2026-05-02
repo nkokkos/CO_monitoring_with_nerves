@@ -105,7 +105,7 @@ defmodule GasSensor.History do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def record_to_ets(final_timestamp, reading_with_metadata) do 
+  def record_to_ets(timestamp, reading) do 
     :ets.insert(@table_name, {timestamp, reading})
     :ok
   end

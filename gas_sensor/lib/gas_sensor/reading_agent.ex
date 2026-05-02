@@ -45,9 +45,9 @@ defmodule GasSensor.ReadingAgent do
     gas_resistance_ohms: 0.0,
     cpu_temperature: 0.0,
     vref: 0.0,
-    vsensor:0.0,
-    vsensor_offset:0.0,
-    vdifferential:0.0,
+    vsensor: 0.0,
+    vsensor_offset: 0.0,
+    vdifferential: 0.0,
     vref_variance: 0.0,
   }
 
@@ -136,10 +136,10 @@ defmodule GasSensor.ReadingAgent do
     gas_resistance_ohms: 0.0,
     cpu_temperature: 0.0,
     vref: 0.0,
-    vsensor:0.0,
-    vsensor_offset:0.0,
-    vdifferential:0.0,
-    vref_variance:0.0,
+    vsensor: 0.0,
+    vsensor_offset: 0.0,
+    vdifferential: 0.0,
+    vref_variance: 0.0,
   }
 
     GasSensor.History.add_sample(@default_reading, :ok)
