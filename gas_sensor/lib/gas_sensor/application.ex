@@ -100,7 +100,7 @@ defmodule GasSensor.Application do
       bme680_sensor,
      
       # 3. History Genserver 
-      #GasSensor.History,
+      GasSensor.History,
 
       # 4. Sensor - only process that touches I2C
       # Depends on ReadingAgent and History (must start after)

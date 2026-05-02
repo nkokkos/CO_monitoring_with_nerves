@@ -353,39 +353,4 @@ defmodule GasSensor.History do
   end
 
 
-  @doc """
-  Calculates the statistical median from a list of numeric sensor readings. 
-  It not used here for the time being
-
-  ## Why the Median?
-  - **Noise Reduction:** Sensors can produce "spikes" due to transient electrical interference or power fluctuations. 
-  - **Outlier Immunity:** Unlike the Mean (average), the Median is not skewed by 
-    single erroneous readings. If 4 readings are ~5000 and 1 is 0 (error), the 
-    median correctly stays at ~5000.
-
-  ## Implementation Details
-  - **Sorting:** The list is sorted in ascending order.
-  - **Odd Count:** Returns the exact middle element.
-  - **Even Count:** Returns the arithmetic mean of the two central elements.
-
-  ## Parameters
-    - `values`: A List of numbers (Integer or Float).
-
-  ## Returns
-    - A single numeric value (Integer or Float) representing the median.
-  """
-  defp calculate_median(values) do
-    sorted = Enum.sort(values)
-    count = length(sorted)
-
-    if rem(count, 2) == 1 do
-      # Odd: Pick the middle
-      Enum.at(sorted, div(count, 2))
-    else
-      # Even: Average the two middle points
-      mid = div(count, 2)
-      (Enum.at(sorted, mid - 1) + Enum.at(sorted, mid)) / 2
-    end
-  end
-
 end

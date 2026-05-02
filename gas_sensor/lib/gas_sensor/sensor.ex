@@ -236,7 +236,7 @@ defmodule GasSensor.Sensor do
     
     result = 
 
-       with {:ok, bme680_data } <- BME280.measure(:bme680),
+       with {:ok, bme680_data } <- BMP280.measure(:bme680),
             {:ok, cpu_temp }    <- GasSensor.HardwareTemp.read_cpu_temp(),
             {:ok, samples}      <- collect_samples(state.i2c, @number_of_samples) 
        do
@@ -539,7 +539,29 @@ defmodule GasSensor.Sensor do
     |> Enum.sum()
     |> Kernel./(length(list))
   end
- 
+
+
+  @doc """
+  Calculates the statistical median from a list of numeric sensor readings.
+  It not used here for the time being
+
+  ## Why the Median?
+  - **Noise Reduction:** Sensors can produce "spikes" due to transient electrical interference or power fluctuations.
+  - **Outlier Immunity:** Unlike the Mean (average), the Median is not skewed by
+    single erroneous readings. If 4 readings are ~5000 and 1 is 0 (error), the
+    median correctly stays at ~5000.
+
+  ## Implementation Details
+  - **Sorting:** The list is sorted in ascending order.
+  - **Odd Count:** Returns the exact middle element.
+  - **Even Count:** Returns the arithmetic mean of the two central elements.
+
+  ## Parameters
+    - `values`: A List of numbers (Integer or Float).
+
+  ## Returns
+    - A single numeric value (Integer or Float) representing the median.
+  """
   # Calculates the median given a list=values
   defp calculate_median(values) do
     sorted = Enum.sort(values)
@@ -554,7 +576,6 @@ defmodule GasSensor.Sensor do
       (Enum.at(sorted, mid - 1) + Enum.at(sorted, mid)) / 2
     end
   end
-
 
 
 end

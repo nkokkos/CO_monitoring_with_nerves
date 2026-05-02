@@ -104,7 +104,7 @@ defmodule Firmware.MixProject do
       
       # Poncho dependencies
       # See https://embedded-elixir.com/post/2017-05-19-poncho-projects
-      # {:gas_sensor, path: "../gas_sensor", env: Mix.env()},
+      {:gas_sensor, path: "../gas_sensor", env: Mix.env()},
 
       # Phoenix web interface that sports a simple web page that displays
       # data in live view
