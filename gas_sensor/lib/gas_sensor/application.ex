@@ -26,30 +26,13 @@ defmodule GasSensor.Application do
   yet (system time shows 1970 or firmware build date). All timestamps use
   this module to ensure accuracy once NTP synchronizes.
 
-  ## Memory Layout
-
-  ```
-  ┌─────────────────────────────────────────┐
-  │ GasSensor.Sensor (GenServer)            │
-  │  ├── I2C bus reference                  │
-  │  ├── Current PPM state                  │
-  │  └── 11-sample window (~1KB)            │
-  ├─────────────────────────────────────────┤
-  │ GasSensor.ReadingAgent (Agent)          │
-  │  └── Current reading map (~200 bytes)   │
-  ├─────────────────────────────────────────┤
-  │ GasSensor.History (ETS ordered_set)     │
-  │  └── 17,280 samples × 52 bytes = ~900KB │
-  └─────────────────────────────────────────┘
-  ```
   """
+  
   use Application
-
-
 
   # add build date to the firmware:
   # Note: when you do: mix firmware, build_date will be burned into the .beam file
-  # so this will true after compilation: GasSensor.Application.build_date()
+  # so this will be true after compilation: GasSensor.Application.build_date()
   @build_date DateTime.utc_now()   # just a module attribute, nothing special
   def build_date, do: @build_date  # expose it as a public function
 
@@ -67,6 +50,7 @@ defmodule GasSensor.Application do
     # Provision for real vs fake bme680 sensor
     bme680_sensor =
       if @bme680 == BMP280 do
+
         # remember from documentation:
         # https://github.com/elixir-sensors/bmp280
         # {:ok, bmp} = BMP280.start_link(bus_name: "i2c-1", bus_address: 0x77)
@@ -84,6 +68,8 @@ defmodule GasSensor.Application do
 
         # therefore, to get readings from this sensor:
         # {:ok, data} = BMP280.measure(:bme680)
+
+        # Start the BMP280 Genserver:
         { 
           BMP280,            # the module to start 
           bus_name: i2c_bus, # the I2C bus name
@@ -96,9 +82,6 @@ defmodule GasSensor.Application do
         @bme680 # grab the fake stubbed sensor : GasSensor.BME680.Stub
       end
 
-    # Initialize timestamp module (records boot time, sets up offline tracking)
-    GasSensor.Timestamp.init()
-
     children = [
 
       # Reading Agent starts first.
@@ -107,14 +90,14 @@ defmodule GasSensor.Application do
       # Start the BMP280 Genserver for reading the BMP680 breakout board:
       bme680_sensor,
      
-      #Start the History Genserver which is responsible to saving 
-      #historical data
+      # Start the History Genserver which is responsible to saving 
+      # historical data
       GasSensor.History,
 
       # Finally, start GasSensor - only process that touches I2C
       # Depends on ReadingAgent and History (must start after)
       # Pass I2C bus configuration from app config
-      #{GasSensor.Sensor, [i2c_bus: i2c_bus]}
+      { GasSensor.Sensor, [i2c_bus: i2c_bus] }
     ]
 
     opts = [strategy: :one_for_one, name: GasSensor.Supervisor]

@@ -99,6 +99,14 @@ defmodule GasSensor.History do
   # ── Public API ──────────────────────────────────────────
 
   @doc """
+  Records a reading directly into the ETS table.
+  Called by GasSensor.ReadingAgent.
+  """
+  def record_to_ets(timestamp, reading) do
+    :ets.insert(@table_name, {timestamp, reading})
+  end
+
+  @doc """
   Starts the History GenServer and creates the ETS table.
   """
   def start_link(_opts \\ []) do

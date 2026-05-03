@@ -3,10 +3,6 @@ defmodule GasSensor.ReadingAgent do
 
   Agent that stores the latest sensor readings for non-blocking access.
 
-  This Agent acts as a read-optimized cache between the I2C-reading GenServer
-  and the Phoenix web interface. It prevents I2C bus contention by ensuring
-  only the GenServer performs I2C operations.
-
   Stores the latest sensor reading for non-blocking access by the web interface.
 
   Only the Sensor GenServer writes here. Phoenix LiveView reads from here.
@@ -65,12 +61,10 @@ defmodule GasSensor.ReadingAgent do
   @doc """
   Gets the current reading from the Agent.
 
-  Returns the full reading map including :ppm, :window, :status, :sample_count, :timestamp
+  Returns the full reading map
 
   ## Examples
-
       iex> GasSensor.ReadingAgent.get_reading()
-      %{co_ppm: 45.32, temperature: 30.0, .... window: [45.1, 45.5, 45.2,.....], status: :ok, timestamp: ~U[2024-01-15 10:30:00Z]}
   """
   def get_reading do
     Agent.get(@agent_name, & &1)
@@ -166,6 +160,7 @@ defmodule GasSensor.ReadingAgent do
       |> Map.put(:time_reliable, reliable?)
       |> Map.put(:status, status)
   
+    # Update the agent:
     Agent.update(@agent_name, fn _ -> reading_with_timestamp end)
 
     # Synchronize with History

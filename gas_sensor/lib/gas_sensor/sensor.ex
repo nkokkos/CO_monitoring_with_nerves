@@ -78,13 +78,17 @@ defmodule GasSensor.Sensor do
   # ADS1115 I2C address
   @ads1115_addr 0x48
   
-  @conversion_ms 140      # time to wait for the conversion register to get ready
+  # Not used here, since we used the polling technique. 
+  # See how we use polling to read the ads1115 chip
+  # @conversion_ms 140      # time to wait for the conversion register to get ready
+
   @sample_interval 15_000 # how often we should we sample the inputs
   @number_of_samples 11   # sample 11 times for the median filter
 
   # TGS_5042 Sensor calibration: 
   @sensitivity_na_per_ppm 1.525 	# this is the number printed on the module we got.
   @r3_ohms 1_200_000                    # feed back resistor connected to the mcp6042 Op amp
+                                        # of 1% sensitivity
  
   # Temperature compensation table for TGS5042
   # This is based in the application note
@@ -213,8 +217,9 @@ defmodule GasSensor.Sensor do
         # Error Reason. Use the empty variable and add the reason
         error_reading = 
           @empty_reading
-            |> Map.put(:error_message, "Hardware i2c error: #{inspect(reason)}")
-            GasSensor.ReadingAgent.add_sample(error_reading, :error)
+            |> Map.put(:error_message, ":error in GasSensor.Sensor.init: #{inspect(reason)}")
+
+        GasSensor.ReadingAgent.add_sample(error_reading, :error)
         {:stop, reason}
     end
 
@@ -287,7 +292,7 @@ defmodule GasSensor.Sensor do
              new_state =
                @empty_reading
                |> Map.put(:i2c, state.i2c)  # keep the i2c ref so we can retry next sample
-               |> Map.put(:error_message,   "Hardware i2c error: #{inspect(reason)}")
+               |> Map.put(:error_message,   ":error GasSensor.Sensor.handle_info: #{inspect(reason)}")
              
              GasSensor.ReadingAgent.add_sample(new_state, :error)  
              #returns the new state and it assigns it to result
@@ -500,10 +505,10 @@ defmodule GasSensor.Sensor do
 
   end
 
-
   # Final PPM conversion using the differential
-  #According to the datasheet at 6-3:
-  #6-3 Temperature compensation
+
+  # According to the datasheet at 6-3:
+  # 6-3 Temperature compensation
   # It is necessary to continuously write the thermistor output into the microprocessor. Inside the
   # microprocessor, temperature compensation is carried
   # out by using the compensation coefficient table shown in Appendix 2. 
@@ -522,6 +527,7 @@ defmodule GasSensor.Sensor do
   
   # Please note, that since we use an non inverting analog setup in our 
   # circuits the correct formula for our case is:
+
   # C = (Vout - V0) / (α × Rf) where V0 = Offset voltage at 0 CO ppm
 
   defp convert_to_ppm(differential, temp, vsensor_offset) do
@@ -532,8 +538,8 @@ defmodule GasSensor.Sensor do
   
     alpha = (@sensitivity_na_per_ppm * 1.0e-9) * cf
 
-    # Since we can't have "negative" gas, this line ensure that we always sees 0.0 if the air is clean.
-    # clamp this to a valid range
+    # Since we can't have "negative" gas, this line ensures that we always see 0.0 if the air is clean.
+    # clamp this to a valid range between 0.0 and 10000
     (true_signal / (alpha * @r3_ohms)) |> max(0.0) |> min(10_000.0)
   end
 

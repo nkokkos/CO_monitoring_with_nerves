@@ -21,3 +21,6 @@ config :gas_sensor,
   i2c_bus: "i2c-1",
   bme680_module: BMP280,
   temp_path: "/sys/class/thermal/thermal_zone0/temp"
+
+# validate firmware if you use mix upload 
+config :nerves_pack, validate_firmware: true
