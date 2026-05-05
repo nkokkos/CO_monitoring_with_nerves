@@ -155,8 +155,8 @@ defmodule GasSensor.ReadingAgent do
     # Use integer Unix ms as ETS key — not the DateTime struct.
     # See History module for why.
     # We pass the EXACT same map and timestamp to the ETS table
-    unix_ms = DateTime.to_unix(timestamp, :millisecond)
-    GasSensor.History.record_to_ets(unix_ms, reading_with_timestamp)
+    # unix_ms = DateTime.to_unix(timestamp, :millisecond)
+    GasSensor.History.record_to_ets(timestamp, reading_with_timestamp)
 
     :ok
   end

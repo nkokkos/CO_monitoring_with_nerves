@@ -78,10 +78,10 @@ defmodule Firmware.MixProject do
 
       # NervesTime keeps the system clock on Nerves devices in sync 
       # when connected to the network and close to in sync when disconnected.
-      {:nerves_time, "~> 0.4.2", 	   targets: @all_targets},
+      #{:nerves_time, "~> 0.4.2", 	   targets: @all_targets},
 
       # NervesTimeZones provides a way of managing local time on embedded devices.  
-      {:nerves_time_zones, "~> 0.3.2",    targets: @all_targets},
+      #{:nerves_time_zones, "~> 0.3.2",    targets: @all_targets},
 
       # add blinky dependency so it always flashes while the app is up
       # https://github.com/nerves-project/nerves_examples/tree/main/blinky

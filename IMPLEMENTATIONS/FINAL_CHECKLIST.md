@@ -96,7 +96,6 @@ GasSensor.Sensor.get_state()
 
 # Check Agent has data
 GasSensor.ReadingAgent.get_reading()
-# Expected: %{ppm: 45.2, window: [...], timestamp: ~U[...], status: :ok}
 
 # Check web server running
 :ets.tab2list(GasSensorWeb.Endpoint)

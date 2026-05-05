@@ -31,7 +31,15 @@ defmodule GasSensor.MixProject do
       # Use Bosch barometric pressure sensors in Elixir 
       # use this librar maintained by Frank Hunleth:
       # https://github.com/elixir-sensors/bmp280
-      {:bmp280, "~> 0.2" }
+      {:bmp280, "~> 0.2" },
+
+      # Since we need Nerves Time on this OTP app, include it here too.
+      # NervesTime keeps the system clock on Nerves devices in sync
+      # when connected to the network and close to in sync when disconnected.
+      {:nerves_time, "~> 0.4.2"},
+
+      # NervesTimeZones provides a way of managing local time on embedded devices.
+      {:nerves_time_zones, "~> 0.3.2"},
       
       # add this package https://hex.pm/packages/fostrom
       # {:fostrom, "~> 0.1.0"}

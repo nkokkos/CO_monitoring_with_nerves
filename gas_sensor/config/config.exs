@@ -27,12 +27,10 @@ import Config
 # defaults for running tests locally only in this OTP app
 
 config :gas_sensor,
-  i2c_bus: "i2c-bus_stub",              # the bus should be stubbed too.
-  bme680_module: GasSensor.BME680.Stub  # use stub in tests, not real sensor
-
-# when testing on the host machine, make sure this file exists in you linux system:
-# /tmp/thermal/thermal_zone0/temp
-config :gas_sensor, temp_path: "/tmp/thermal/thermal_zone0/temp"
-
+  i2c_bus: "i2c-bus_stub",                       # the bus should be stubbed too.
+  bme680_module: GasSensor.BME680.Stub,          # use stub in tests, not real sensor
+  temp_path: "/tmp/thermal/thermal_zone0/temp",  # when testing on the host machine, make sure this file exists in you linux system:
+  env: :host                                     # This is for running on host, only for this OTP app. For GasSensor.Timestamp
+ 
 # Target-specific configuration - We don't have more configurations
 import_config "#{Mix.target()}.exs"

@@ -72,7 +72,7 @@ defmodule GasSensor.History do
   # 24 hours retention
   @retention_seconds_24h	86400  # 24 hours in seconds 
   
-  # Cleanup every 60 seconds, 60_000 here refers to milliseconds
+  # Cleanup every               60 seconds, 60_000 here refers to milliseconds
   @cleanup_interval 60_000
   
   # Maximum points to render for 24 hours
@@ -147,7 +147,7 @@ defmodule GasSensor.History do
     |> :ets.select(match_spec)
     |> Enum.map(fn {unix_ms, reading} ->
      # rebuild from the ETS key
-     ts = DateTime.from_unix!(div(unix_ms, 1_000))
+     ts = DateTime.from_unix!(unix_ms, :millisecond)     
      
      reading 
      |> Map.put(:timestamp, ts)
@@ -299,7 +299,8 @@ defmodule GasSensor.History do
       }
     ]
 
-    :ets.select_delete(@table_name, match_spec)
+    deleted = :ets.select_delete(@table_name, match_spec)
+    if deleted > 0 do: Logger.debug("Cleaned up #{deleted} old entries")
 
     :ok
   end

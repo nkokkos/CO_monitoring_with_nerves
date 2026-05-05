@@ -90,17 +90,15 @@ config :nerves_time, :servers, [
   "2.pool.ntp.org",
   "3.pool.ntp.org"
 
-config :gas_sensor, :env, :target  # used in gas_sensor/lib/gas_sensor/timestamp.ex-> Application.get_env
-
   # Regional servers (uncomment for better performance in your region)
-  # "0.us.pool.ntp.org",  	# North America
+  # "0.us.pool.ntp.org",        # North America
   # "0.europe.pool.ntp.org",    # Europe
   # "0.asia.pool.ntp.org",      # Asia
 
   # Custom/internal NTP servers (add your own)
-  # "ntp.mycompany.local",  	# Internal company server
-  # "192.168.1.1",          	# Router with NTP
-  # "10.0.0.1",             	# Local network NTP
+  # "ntp.mycompany.local",      # Internal company server
+  # "192.168.1.1",              # Router with NTP
+  # "10.0.0.1",                 # Local network NTP
 ]
 
 # Configure the device for SSH IEx prompt access and firmware updates

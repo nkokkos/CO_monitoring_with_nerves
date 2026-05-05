@@ -30,15 +30,11 @@ defmodule GasSensor.Application do
   
   use Application
 
-  # add build date to the firmware:
+  # Add build date to the firmware:
   # Note: when you do: mix firmware, build_date will be burned into the .beam file
   # so this will be true after compilation: GasSensor.Application.build_date()
   @build_date DateTime.utc_now()   # just a module attribute, nothing special
   def build_date, do: @build_date  # expose it as a public function
-  
-  # This variable used in timestamp.
-  Application.put_env(:gas_sensor, :boot_monotonic, System.monotonic_time(:second))
-
 
   # grab the real sensor from the config
   # if we compile on host, use the fake sensor 
@@ -96,7 +92,7 @@ defmodule GasSensor.Application do
       GasSensor.ReadingAgent,
 
       # Start the BMP280 Genserver for reading the BMP680 breakout board:
-      # bme680_sensor,
+      bme680_sensor,
      
       # Start the History Genserver which is responsible to saving 
       # historical data

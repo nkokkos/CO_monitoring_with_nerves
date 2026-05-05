@@ -20,7 +20,8 @@ config :firmware,
 config :gas_sensor,
   i2c_bus: "i2c-1",
   bme680_module: BMP280,
-  temp_path: "/sys/class/thermal/thermal_zone0/temp"
+  temp_path: "/sys/class/thermal/thermal_zone0/temp",
+  env: :target #this is for picking the correct time if we are running on rasberry pi. Look inside the GasSensor.Timestamp module
 
 # validate firmware if you use mix upload 
 config :nerves_pack, validate_firmware: true

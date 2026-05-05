@@ -2,19 +2,28 @@ defmodule GasSensor.Timestamp do
   @moduledoc """
   Reliable UTC timestamp generation for RTC-less embedded systems.
 
+  With NTP:
+    Returns real UTC time world clock
+    Set time_reliable = true
+  With NTP off / no internet present
+    Returns provisional timestamp (build date + elapsed time)
+    Sets time_reliable = false
+    Maintains chronological order.
+
   ## Usage
 
       # Get timestamp with reliability check
       {timestamp, reliable?} = GasSensor.Timestamp.now_with_reliability()
       
+      # Get current time (uses provisional if offline)
+      timestamp = GasSensor.Timestamp.now()
+
       # Check NTP sync status
       synced? = GasSensor.Timestamp.ntp_synced?()
       
       # Check if we're in offline mode
       offline? = GasSensor.Timestamp.offline_mode?()
       
-      # Get provisional timestamp (for offline data)
-      timestamp = GasSensor.Timestamp.provisional_timestamp()
   """
 
   require Logger
@@ -39,10 +48,10 @@ defmodule GasSensor.Timestamp do
   end
 
   @doc """ 
-    Returns current UTC time without a reliability check
+    Returns current UTC time with a reliability check
   """
   def now do
-    DateTime.utc_now()
+    {ts, _reliable?} = now_with_reliability()
   end
 
   @doc """
@@ -51,8 +60,8 @@ defmodule GasSensor.Timestamp do
   """
   def ntp_synced? do
     case Application.get_env(:gas_sensor, :env, :host) do
-      :host   -> reliable_time?(DateTime.utc_now())  # skip NervesTime on host
-      :target -> NervesTime.synchronized?() and reliable_time?(DateTime.utc_now())
+      :host   -> reliable_time?(DateTime.utc_now()) # running on host, on this otp app. skip NervesTime on host, on this OTP app.
+      :target -> NervesTime.synchronized?() and reliable_time?(DateTime.utc_now()) # Running on rpi0
     end
   end
   

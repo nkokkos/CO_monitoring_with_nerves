@@ -82,8 +82,8 @@ defmodule GasSensor.Sensor do
   # See how we use polling to read the ads1115 chip
   # @conversion_ms 140      # time to wait for the conversion register to get ready
 
-  @sample_interval 15_000 # how often we should we sample the inputs
-  @number_of_samples 11   # sample 11 times for the median filter
+  @sample_interval 20_000 # how often we should we sample the inputs
+  @number_of_samples 7    # sample 7 times for the median filter
 
   # TGS_5042 Sensor calibration: 
   @sensitivity_na_per_ppm 1.525 	# this is the number printed on the module we got.
@@ -217,7 +217,7 @@ defmodule GasSensor.Sensor do
         # Error Reason. Use the empty variable and add the reason
         error_reading = 
           @empty_reading
-            |> Map.put(:error_message, ":error in GasSensor.Sensor.init: #{inspect(reason)}")
+            |> Map.put(:error_message, ":error in GasSensor.Sensor.init(opts): #{inspect(reason)}")
 
         GasSensor.ReadingAgent.add_sample(error_reading, :error)
         {:stop, reason}
@@ -234,10 +234,9 @@ defmodule GasSensor.Sensor do
   def handle_call(:get_state, _from, state) do
     {:reply, state, state}
   end
-
+  
   @impl true
   def handle_info(:collect_sample, state) do
-    
     result = 
 
        with {:ok, bme680_data } <- BMP280.measure(:bme680),
@@ -312,7 +311,7 @@ defmodule GasSensor.Sensor do
        end
 
       # Schedule next sample
-      Process.send_after(self(), :collect_sample, @sample_interval)
+        Process.send_after(self(), :collect_sample, @sample_interval)
 
       {:noreply, result}
   end
