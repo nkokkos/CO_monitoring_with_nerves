@@ -27,12 +27,23 @@ defmodule GasSensorWeb.MixProject do
     [
       # Phoenix and LiveView - optimized for embedded
       {:phoenix, "~> 1.7.0"},
-      {:phoenix_live_view, "~> 1.0"},
       {:phoenix_html, "~> 4.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:phoenix_live_view, "~> 1.1.0"},
+      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
+      {:heroicons,
+       github: "tailwindlabs/heroicons",
+       tag: "v2.2.0",
+       sparse: "optimized",
+       app: false,
+       compile: false,
+       depth: 1},
+
+      {:req, "~> 0.5"},
 
       # Telemetry (lightweight metrics)
-      {:telemetry_metrics, "~> 0.6"},
+      {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
 
       # Web server - Bandit is lighter than Cowboy for embedded
@@ -48,13 +59,31 @@ defmodule GasSensorWeb.MixProject do
       # {:gas_sensor, path: "../gas_sensor"},
 
       # Only for development
-      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev}
+      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
+
     ]
   end
 
+  # Aliases are shortcuts or tasks specific to the current project.
+  # For example, to install project dependencies and perform other setup tasks, run:
+  #
+  #     $ mix setup
+  #
+  # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get"]
+      setup: ["deps.get", "assets.setup", "assets.build"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
+      "assets.build": ["compile", "tailwind gas_sensor_web", "esbuild gas_sensor_web"],
+      "assets.deploy": [
+        "tailwind gas_sensor_web --minify",
+        "esbuild gas_sensor_web --minify",
+        "phx.digest"
+      ],
+      precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
     ]
   end
+
+
 end

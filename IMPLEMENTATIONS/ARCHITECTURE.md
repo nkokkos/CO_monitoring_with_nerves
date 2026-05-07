@@ -65,8 +65,8 @@ The supervision trees are designed to ensure proper startup order:
 **gas_sensor supervision tree:**
 ```
 Supervisor (one_for_one)
-├── Core.ReadingAgent (starts first - no deps)
-└── Core.Sensor (starts second - updates Agent)
+├── GasSensor.ReadingAgent (starts first - no deps)
+└── GasSensor.Sensor (starts second - updates Agent)
 ```
 
 **Complete system supervision:**
@@ -118,9 +118,7 @@ Core.ReadingAgent.update(reading_map)  # Push new reading
 ```elixir
 %{
   ppm: 45.32,                    # Current CO concentration
-  window: [45.1, 45.5, ...],    # Last 7 raw samples
-  status: :ok,                    # :ok | :error | :not_started
-  sample_count: 150,              # Total samples taken
+  status: :ok,                   # :ok | :error | :not_started
   timestamp: ~U[2024-01-15...]   # When last updated
 }
 ```

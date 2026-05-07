@@ -22,6 +22,9 @@ defmodule GasSensorWeb.Router do
 
     live("/", DashboardLive, :index)
     live("/sensor", SensorLive, :index)
+    
+    # set up the new graph
+    live("/sensor/detail", SensorDetailLive, :index)
   end
 
   # API endpoint for sensor data (optional)

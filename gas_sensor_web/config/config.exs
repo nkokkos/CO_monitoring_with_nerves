@@ -11,6 +11,8 @@ config :gas_sensor_web,
 # Configures the endpoint
 config :gas_sensor_web, GasSensorWeb.Endpoint,
   url: [host: "localhost"],
+  #cache_static_manifest: "priv/static/cache_manifest.json",
+  secret_key_base: "SDr2csjko/PTHvW/YRWIIV4I3LNE8sjyUU9iigvoKW6z+SlnmYdoZ044a26adLBP",
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: GasSensorWeb.ErrorHTML, json: GasSensorWeb.ErrorJSON],
@@ -21,13 +23,25 @@ config :gas_sensor_web, GasSensorWeb.Endpoint,
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.17.11",
+  version: "0.25.4",
   gas_sensor_web: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
+
+# Configure tailwind (the version is required)
+config :tailwind,
+  version: "4.1.7",
+  phoenix_tutorial_app: [
+    args: ~w(
+      --input=assets/css/app.css
+      --output=priv/static/assets/css/app.css
+    ),
+    cd: Path.expand("..", __DIR__)
+  ]
+
 
 # Configures Elixir's Logger
 config :logger, :console,

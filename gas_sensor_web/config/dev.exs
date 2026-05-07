@@ -1,13 +1,37 @@
 import Config
 
 # Development configuration
+#config :gas_sensor_web, GasSensorWeb.Endpoint,
+#  http: [ip: {0, 0, 0, 0}, port: 3001],
+#  check_origin: false,
+#  code_reloader: true,
+#  debug_errors: true,
+#  secret_key_base: "SDr2csjko/PTHvW/YRWIIV4I3LNE8sjyUU9iigvoKW6z+SlnmYdoZ044a26adLBP",
+#  watchers: [], 
+#  server: true
+
 config :gas_sensor_web, GasSensorWeb.Endpoint,
-  http: [ip: {0, 0, 0, 0}, port: 4000],
+  # 1. Identity for links
+  url: [host: "localhost", port: 3001],
+  
+  # 2. Open the door for VirtualBox (0.0.0.0)
+  http: [ip: {0, 0, 0, 0}, port: 3001],
+  
+  # 3. The 64-byte key (Fixed)
+  secret_key_base: "SDr2csjko/PTHvW/YRWIIV4I3LNE8sjyUU9iigvoKW6z+SlnmYdoZ044a26adLBP",
+  
+  # 4. The LiveView "Glue" (Crucial for Vagrant)
   check_origin: false,
+  
+  # 5. Infrastructure
+  adapter: Bandit.PhoenixAdapter,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "dev_secret_key_base_for_gas_sensor_web_dev_only",
+  live_view: [signing_salt: "gas_sensor_web_salt"],
   watchers: []
+
+
+
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"

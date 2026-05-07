@@ -1,6 +1,6 @@
 ## TGS5042 Gas Sensor Poncho Project
 
-## This is a project in progress...
+## This is a elixir nerves project project in progress...
 
 This is a [poncho project](https://embedded-elixir.com/post/2017-05-19-poncho-projects/) 
 for Nerves that separates firmware from business logic, targeting **Raspberry Pi Zero W**.
@@ -67,7 +67,7 @@ mix archive.install hex nerves_bootstrap
 ### 1. Build and test the gas sensor library
 
 ```bash
-cd core
+cd firmware
 mix deps.get
 mix test
 ```
@@ -75,7 +75,7 @@ mix test
 ### 2. Build firmware for Raspberry Pi Zero W
 
 ```bash
-cd core
+cd firmware
 export MIX_TARGET=rpi0
 mix deps.get
 mix firmware
@@ -128,18 +128,6 @@ Default: `0x48` (ADDR pin to GND)
 
 ## WiFi Configuration
 
-Create a `wifi_credentials.json` file on the SD card's boot partition to configure WiFi:
-
-```json
-{
-  "ssid": "YOUR_WIFI_SSID",
-  "psk": "YOUR_WIFI_PASSWORD",
-  "key_mgmt": "wpa_psk"
-}
-```
-
-Or configure via IEx after first boot:
-
 ```elixir
 VintageNet.configure("wlan0", %{
   type: VintageNetWiFi,
@@ -156,11 +144,11 @@ VintageNet.configure("wlan0", %{
 
 ## Architecture
 
-### Core OTP Application
+### Firmware OTP Application
 
 A reusable OTP application that provides:
 
-- **Core.Sensor** - GenServer that:
+- **GasSensor.Sensor** - GenServer that:
   - Communicates with ADS1115 ADC via I2C
   - Samples 11 times over 10 seconds
   - Applies median filtering
@@ -213,8 +201,8 @@ Edit `gas_sensor/lib/gas_sensor/sensor.ex` and update these values based on your
 ```elixir
 # Sensor calibration constants
 @sensitivity_na_per_ppm 1.827    # nA per ppm (from sensor label/datasheet)
-@r3_ohms 1_200_000                 # Feedback resistor value
-@divider_factor 2.0                 # Voltage divider factor
+@r3_ohms 1_200_000               # Feedback resistor value
+@divider_factor 2.0              # Voltage divider factor
 ```
 
 ## Usage
@@ -230,8 +218,6 @@ GasSensor.Sensor.get_ppm()
 # Get full state for debugging
 GasSensor.Sensor.get_state()
 
-# Use helper for formatted output
-GasSensor.Helpers.gas_info()
 ```
 
 ### Web Interface
@@ -304,4 +290,4 @@ mix phx.server
 
 
 
-MMIT LicenseIt License
+MIT License

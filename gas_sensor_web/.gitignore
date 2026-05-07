@@ -24,3 +24,6 @@
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Ignore JavaScript dependencies
+assets/node_modules/

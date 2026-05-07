@@ -14,12 +14,20 @@ defmodule GasSensorWeb.Endpoint do
     signing_salt: "sensor_salt"
   ]
 
+
+  socket "/live", Phoenix.LiveView.Socket,
+    websocket: [connect_info: [session: @session_options]],
+    longpoll: [connect_info: [session: @session_options]]
+
+
   # Serve static files from priv/static
   plug(Plug.Static,
     at: "/",
     from: :gas_sensor_web,
     gzip: false,
-    only: GasSensorWeb.static_paths()
+    # only: GasSensorWeb.static_paths()
+    # Manually list the folders since static_paths() is missing
+    only: ~w(assets fonts images favicon.ico robots.txt)
   )
 
   # Code reloading for development

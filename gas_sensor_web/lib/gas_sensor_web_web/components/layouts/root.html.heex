@@ -3,13 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+     <meta name="csrf-token" content={Phoenix.Controller.get_csrf_token()} />
+
+
     <title><%= assigns[:page_title] || "Dashboard" %> · Gas Sensor</title>
-    <style>
+     
+     <script defer phx-track-static type="text/javascript" src="/assets/app.js"></script>
+     <style>
       /* Minimal CSS for embedded deployment */
       *, *::before, *::after { box-sizing: border-box; }
       html { font-family: system-ui, -apple-system, sans-serif; }
       body { margin: 0; padding: 0; }
-      
       /* Tailwind-like utility classes */
       .min-h-screen { min-height: 100vh; }
       .bg-gray-100 { background-color: #f3f4f6; }
