@@ -9,7 +9,8 @@ defmodule GasSensorWeb.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      listeners: [Phoenix.CodeReloader]
     ]
   end
 
@@ -26,8 +27,8 @@ defmodule GasSensorWeb.MixProject do
   defp deps do
     [
       # Phoenix and LiveView - optimized for embedded
-      {:phoenix, "~> 1.7.0"},
-      {:phoenix_html, "~> 4.0"},
+      {:phoenix, "~> 1.8.5"},
+      {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
       {:phoenix_live_dashboard, "~> 0.8.3"},
@@ -73,7 +74,6 @@ defmodule GasSensorWeb.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind gas_sensor_web", "esbuild gas_sensor_web"],
       "assets.deploy": [

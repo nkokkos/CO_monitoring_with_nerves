@@ -1,5 +1,8 @@
 defmodule GasSensorWeb.Simulator.History do
   @moduledoc """
+ 
+  This a simulator module. All the methods and actions
+  should reflect the real code at gas_sensor otp app
 
   ETS-based circular buffer for a maximum 7 days sensor history.
 
@@ -89,8 +92,10 @@ defmodule GasSensorWeb.Simulator.History do
   Called by GasSensorWeb.Simulator.ReadingAgent.
   """
   def record_to_ets(timestamp, reading) do
-    unix_ts = DateTime.to_unix(timestamp, :millisecond)
-    :ets.insert(@table_name, {unix_ts, reading})
+    #unix_ts = DateTime.to_unix(timestamp, :millisecond)
+    #timestamp is in unix_ts
+    #:ets.insert(@table_name, {unix_ts, reading})
+     :ets.insert(@table_name, {timestamp, reading})
   end
 
   @doc """
@@ -151,7 +156,7 @@ defmodule GasSensorWeb.Simulator.History do
    
     # Note this why we used DateTime.to_iso8601
     # :timestamp_iso
-    # VegaLite cannot read Elixir DateTime structs. Use the :timestamp_iso field
+    # VegaLite or Chart.js cannot read Elixir DateTime structs. Use the :timestamp_iso field
   end
 
 
@@ -242,8 +247,9 @@ defmodule GasSensorWeb.Simulator.History do
 
   @impl true
   def handle_info(:cleanup, state) do
-    cleanup_old_entries()
-    schedule_cleanup()
+    # don't clean up anything for the time being
+    # cleanup_old_entries()
+    # schedule_cleanup()
     {:noreply, state}
   end
 
@@ -333,7 +339,11 @@ defmodule GasSensorWeb.Simulator.History do
    # peak_co = Enum.max_by([r11,r12,r13,r14,r15], co_ppm) # finds peak inside bucket 3 only
    # flat_map and map both iterate item by item. 
    # The only difference is flat_map flattens the result at the end. 
-
+   # Examine this code must be added:
+   # |> Enum.flat_map(fn bucket -> # Use flat_map to prevent nested lists
+   # instead of 
+   # |> Enum.map(fn bucket -> 
+   
     samples
     |> Enum.chunk_every(bucket_size, bucket_size, :discard)
     |> Enum.map(fn bucket ->

@@ -25,3 +25,5 @@ _build/
 /.fetch
 erl_crash.dump
 *.ez
+
+gas_sensor_web/priv/static/assets/

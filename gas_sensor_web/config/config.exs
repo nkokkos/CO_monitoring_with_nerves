@@ -6,7 +6,7 @@
 import Config
 
 config :gas_sensor_web,
-  ecto_repos: []
+   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
 config :gas_sensor_web, GasSensorWeb.Endpoint,
@@ -21,20 +21,22 @@ config :gas_sensor_web, GasSensorWeb.Endpoint,
   pubsub_server: GasSensorWeb.PubSub,
   live_view: [signing_salt: "gas_sensor_web_salt"]
 
-# Configure esbuild (the version is required)
+
 config :esbuild,
   version: "0.25.4",
   gas_sensor_web: [
     args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+      # Change --outdir from .../assets/js to .../assets
+      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets --external:/fonts/* --external:/images/* --alias:@=.),
     cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
+
 
 # Configure tailwind (the version is required)
 config :tailwind,
   version: "4.1.7",
-  phoenix_tutorial_app: [
+  gas_sensor_web: [
     args: ~w(
       --input=assets/css/app.css
       --output=priv/static/assets/css/app.css
@@ -42,9 +44,8 @@ config :tailwind,
     cd: Path.expand("..", __DIR__)
   ]
 
-
-# Configures Elixir's Logger
-config :logger, :console,
+# Configure Elixir's Logger
+config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 

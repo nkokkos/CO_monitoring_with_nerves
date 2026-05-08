@@ -127,6 +127,7 @@ defmodule GasSensorWeb.Simulator.ReadingAgent do
     vref_variance: 0.0,
   }
 
+
     GasSensor.History.add_sample(@default_reading, :ok)
     GasSensor.History.add_sample(null_reading, :error)
   """
@@ -135,8 +136,12 @@ defmodule GasSensorWeb.Simulator.ReadingAgent do
     # Check time reliability
     {timestamp, reliable?} = GasSensorWeb.Simulator.Timestamp.now_with_reliability()
 
+    # convert to unix milliseconds 
+    unix_ms = DateTime.to_unix(timestamp, :millisecond)
+
     reading_with_timestamp =
       reading
+      |> Map.put(:unix_ms, unix_ms)  # Let' use this for chart.js and ETS
       |> Map.put(:timestamp, timestamp)
       |> Map.put(:time_reliable, reliable?)
       |> Map.put(:status, status)
@@ -144,13 +149,14 @@ defmodule GasSensorWeb.Simulator.ReadingAgent do
     # Update the agent:
     Agent.update(@agent_name, fn _ -> reading_with_timestamp end)
 
-
     # Synchronize with Simulated Histor
     # Use integer Unix ms as ETS key — not the DateTime struct.
     # See History module for why.
     # We pass the EXACT same map and timestamp to the ETS table
     # unix_ms = DateTime.to_unix(timestamp, :millisecond)
-    GasSensorWeb.Simulator.History.record_to_ets(timestamp, reading_with_timestamp)
+    # GasSensorWeb.Simulator.History.record_to_ets(timestamp, reading_with_timestamp)
+     
+     GasSensorWeb.Simulator.History.record_to_ets(unix_ms, reading_with_timestamp)
 
     :ok
   end

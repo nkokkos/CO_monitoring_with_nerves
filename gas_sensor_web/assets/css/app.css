@@ -4,7 +4,7 @@
 @import "tailwindcss" source(none);
 @source "../css";
 @source "../js";
-@source "../../lib/phoenix_tutorial_app_web";
+@source "../../lib/gas_sensor_web_web";
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */
@@ -101,5 +101,30 @@
 
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
+
+/* For this project custom css files */
+
+
+/* When Phoenix is trying to reconnect or the server is dead */
+.phx-loading .status-dot {
+  @apply bg-red-500 animate-none; 
+}
+
+.phx-loading .live-status {
+  display: none;
+}
+
+.phx-loading .offline-status {
+  display: block;
+}
+
+/* Optional: Dim the dashboard to show data is stale */
+.phx-loading main {
+  opacity: 0.6;
+  filter: grayscale(0.5);
+  pointer-events: none;
+}
+
+
 
 /* This file is for your main application CSS */

@@ -27,3 +27,5 @@
 
 # Ignore JavaScript dependencies
 assets/node_modules/
+
+/gas_sensor_web/priv/static/assets/
