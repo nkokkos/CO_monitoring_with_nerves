@@ -10,6 +10,9 @@ import Config
 #  watchers: [], 
 #  server: true
 
+config :gas_sensor_web,
+  voffset_file: "/tmp/voffset_config.json"
+
 config :gas_sensor_web, GasSensorWeb.Endpoint,
   # 1. Identity for links
   url: [host: "localhost", port: 3001],
@@ -30,9 +33,6 @@ config :gas_sensor_web, GasSensorWeb.Endpoint,
   live_view: [signing_salt: "gas_sensor_web_salt"],
   watchers: []
 
-
-
-
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
 
@@ -44,3 +44,5 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Include HEEx debug annotations as HTML comments in rendered markup
 config :phoenix_live_view, :debug_heex_annotations, true
+
+

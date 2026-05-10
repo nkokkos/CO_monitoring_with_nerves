@@ -53,7 +53,15 @@ defmodule GasSensor.ReadingAgent do
   This should be started before the Sensor GenServer in the supervision tree.
   """
   def start_link(_opts \\ []) do
-    Agent.start_link(fn -> @default_reading end, name: @agent_name)
+
+    # Load the vsensor_offset from the config file
+    config = GasSensor.ConfigManager.init()
+    
+    # Update the existing parameter copied over from the 
+    # module attribute
+    initial_state = %{@default_reading | vsensor_offset: config["vsensor_offset"]}
+
+    Agent.start_link(fn -> initial_state end, name: @agent_name)
   end
 
   @doc """
@@ -92,6 +100,18 @@ defmodule GasSensor.ReadingAgent do
   """
   def get_status do
     Agent.get(@agent_name, & &1.status)
+  end
+
+  # update the offset value. We use it here
+  # from the ui web app
+  def update_vsensor_offset(value) do 
+    Agent.update(@agent_name, fn state ->
+      %{state | vsensor_offset: value}
+    end)
+  end 
+ 
+  def get_vsensor_offset do
+    Agent.get(@agent_name, & &1.vsensor_offset)
   end
 
   @doc """
@@ -142,6 +162,9 @@ defmodule GasSensor.ReadingAgent do
     # Check time reliability
     {timestamp, reliable?} = GasSensor.Timestamp.now_with_reliability()
 
+
+    # convert to unix_milliseconds 
+    unix_ms = DateTime.to_unix(timestamp, :millisecond)
     reading_with_timestamp =
       reading
       |> Map.put(:timestamp, timestamp)
@@ -149,14 +172,20 @@ defmodule GasSensor.ReadingAgent do
       |> Map.put(:status, status)
   
     # Update the agent:
-    Agent.update(@agent_name, fn _ -> reading_with_timestamp end)
+    # Agent.update(@agent_name, fn _ -> reading_with_timestamp end)
+
+    Agent.update(@agent_name, fn current_state ->
+      Map.merge(current_state, reading_with_timestamp)
+    end)
 
     # Synchronize with History
     # Use integer Unix ms as ETS key — not the DateTime struct.
     # See History module for why.
     # We pass the EXACT same map and timestamp to the ETS table
     # unix_ms = DateTime.to_unix(timestamp, :millisecond)
-    GasSensor.History.record_to_ets(timestamp, reading_with_timestamp)
+    # GasSensor.History.record_to_ets(timestamp, reading_with_timestamp)
+
+    GasSensor.History.record_to_ets(unix_ms, reading_with_timestamp)
 
     :ok
   end

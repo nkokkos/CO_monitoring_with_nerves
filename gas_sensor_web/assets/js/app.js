@@ -29,6 +29,7 @@ import Chart from "chart.js/auto";
 
 let Hooks = {}
 
+// first hook for CO and Temperature 
 Hooks.SensorChart = {
   // Runs once when the page/canvas loads
   mounted() {
@@ -41,14 +42,16 @@ Hooks.SensorChart = {
         labels: data.map(d => d.time),
         datasets: [
           {
-            label: 'CO (PPM)',
+	    label: 'CO (PPM)',
             data: data.map(d => d.co_ppm),
             borderColor: '#ef4444',
             backgroundColor: 'rgba(239, 68, 68, 0.1)',
             yAxisID: 'y',
             borderWidth: 3,
             tension: 0.4,
-            fill: true
+            fill: true,
+            min: 0,
+            suggestedMax: 150 // Adjusts if data goes higher
           },
           {
             label: 'Temp (°C)',
@@ -58,11 +61,14 @@ Hooks.SensorChart = {
             yAxisID: 'y1',
             borderWidth: 3,
             tension: 0.4,
-            fill: true
+            fill: true,
+            min: 0,
+	    suggestedMax: 80
           }
         ]
       },
       options: {
+	animation: false,
         responsive: true,
         maintainAspectRatio: false,
         scales: {
@@ -90,6 +96,83 @@ Hooks.SensorChart = {
   }
 }
 
+Hooks.SensorChart_volts = {
+  // Runs once when the page/canvas loads
+  mounted() {
+    const ctx = this.el.getContext('2d');
+    const data = JSON.parse(this.el.dataset.historyVolts);
+
+    this.chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map(d => d.time),
+        datasets: [
+          {
+            label: 'CO (PPM)',
+            data: data.map(d => d.co_ppm),
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            yAxisID: 'y',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Vsensor Volts',
+            data: data.map(d => d.vsensor),
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            yAxisID: 'y1',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+	animation: false,
+        responsive: true,
+        maintainAspectRatio: false,
+	scales: {
+          y: { 
+            type: 'linear', 
+            beginAtZero: true,
+            title: { display: true, text: 'Value' } 
+          }
+        //scales:
+	//{
+          // Removed y1 axis
+        //  y: { 
+        //    type: 'linear', 
+        //    position: 'left', 
+        //    beginAtZero: true,
+        //    title: { display: true, text: 'Consolidated Scale' } 
+        //  }
+        }
+        //scales: {
+        //  y: { type: 'linear', position: 'left', title: { display: true, text: 'PPM' } },
+        //  y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false } }
+        //}
+      }
+    });
+  },
+
+  // THIS IS THE UPDATED FUNCTION
+  // It runs every 5 seconds when the server sends new @history
+  updated() {
+    const data = JSON.parse(this.el.dataset.historyVolts);
+    
+    // Update labels (time)
+    this.chart.data.labels = data.map(d => d.time);
+    
+    // Update both lines
+    this.chart.data.datasets[0].data = data.map(d => d.co_ppm);
+    this.chart.data.datasets[1].data = data.map(d => d.vsensor);
+    
+    // 'none' prevents the chart from bouncing/animating on every tick
+    this.chart.update('none');
+  }
+}
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

@@ -12,6 +12,7 @@ defmodule GasSensor do
   end
 
   defmodule History do
+    defdelegate get_newest(), to: GasSensorWeb.Simulator.History
     defdelegate get_for_graph(max_points), to: GasSensorWeb.Simulator.History
     defdelegate get_last_24h(), to: GasSensorWeb.Simulator.History
     

@@ -1,4 +1,4 @@
-defmodule GasSensorWeb.SensorDetailLive do
+defmodule GasSensorWeb.SensorVoltsLive do
   @moduledoc """
   TGS5042 CO sensor real-time monitor with 5-minute history.
   Polls Agent every 1s for current reading, ETS every 5s for graph.
@@ -68,7 +68,7 @@ defmodule GasSensorWeb.SensorDetailLive do
       %{
         time: format_time(reading.timestamp),
         co_ppm: reading.co_ppm,
-        temperature: reading.temperature_c
+        vsensor: reading.vsensor
       }
     end)
   end
@@ -101,14 +101,14 @@ defmodule GasSensorWeb.SensorDetailLive do
 							
 								<nav class="flex-1 px-4 space-y-2">
 				  <!-- 1. active (No border, no background) -->
-				  <.link navigate={~p"/sensor/detail"} class="flex items-center gap-3 px-4 py-3 text-white bg-indigo-600 
-					rounded-xl shadow-lg shadow-indigo-500/20 transition group">
+				  <.link navigate={~p"/sensor/detail"} class="flex items-center gap-3 px-4 py-3 
+					text-slate-400 rounded-xl hover:bg-white/5 hover:text-white transition group">
 					<span class="font-medium">Live Monitor CO - TEMP </span>
 				  </.link>
 				  
-				  <!--INACTIVE (No border, no background) -->
-				  <.link navigate={~p"/sensor/volts"} class="flex items-center gap-3 px-4 py-3 
-					text-slate-400 rounded-xl hover:bg-white/5 hover:text-white transition group">
+				  <!--active (No border, no background) -->
+				  <.link navigate={~p"/sensor/volts"} class="flex items-center gap-3 px-4 py-3 text-white bg-indigo-600 
+					rounded-xl shadow-lg shadow-indigo-500/20 transition group">
 					<span class="font-medium">Sensor PPM vs Volts</span>
 				  </.link>
 					
@@ -153,7 +153,8 @@ defmodule GasSensorWeb.SensorDetailLive do
 			  </div>
 				
 			  <!-- Current Readings -->
-			  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+			  <!-- <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8"> -->
+			  <div class="grid grid-cols-3 gap-6 mb-8">
 				<!-- CO Card -->
 				<div class="relative group">
 				  <div class="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-pink-600 rounded-2xl blur opacity-75 group-hover:opacity-100 transition"></div>
@@ -182,32 +183,52 @@ defmodule GasSensorWeb.SensorDetailLive do
 					</div>
 				  </div>
 				</div>
-				
-				<!-- Temperature Card -->
+										
+										
+				<!-- Vref Card -->
 				<div class="relative group">
 				  <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl blur opacity-75 group-hover:opacity-100 transition"></div>
 				  <div class="relative bg-slate-800 rounded-2xl p-8 h-full">
 					<div class="flex items-center justify-between mb-6">
-					  <h2 class="text-white text-xl font-semibold">Temperature</h2>
-					  <div class="text-4xl">🌡️</div>
+					  <h2 class="text-white text-xl font-semibold">Vref</h2>
 					</div>
 					<div class="flex items-end justify-between">
 					  <div>
-						<div class={["text-7xl font-black mb-2", get_temp_class(@current.temperature_c)]}>
-						  <%= Float.round(@current.temperature_c, 1) %>
+						<div class={["text-7xl font-black mb-2", get_temp_class(@current.vref)]}>
+						  <%= Float.round(@current.vref, 1) %>
 						</div>
-						<div class="text-2xl text-gray-400">°C</div>
+						<div class="text-2xl text-gray-400">Volts</div>
 					  </div>
 					  <div class="text-right text-gray-300 text-sm">
-					  <!--	<div><%#= Float.round(@current.temperature_c * 9/5 + 32, 1) %>°F</div> -->
-						<div class="text-3xl text-gray-500 mt-10">RH: <%= Float.round(@current.humidity_rh, 1) %>%</div>
-						<div class="text-3xl text-gray-500">Dew: <%= Float.round(@current.dew_point_c, 1) %>°C</div>
+						<div class="text-2xl text-gray-500 mt-10">Vdifferential: <%= Float.round(@current.vdifferential, 1) %>V</div>
+						<div class="text-2xl text-gray-500">Vsensor_offset: <%= Float.round(@current.vsensor_offset, 1) %>V </div>
 					  </div>
 					</div>
 				  </div>
 				</div>
-			  </div>
-			  
+
+                <!-- Vsensor -->
+				<div class="relative group">
+				  <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl blur opacity-75 group-hover:opacity-100 transition"></div>
+				  <div class="relative bg-slate-800 rounded-2xl p-8 h-full">
+					<div class="flex items-center justify-between mb-6">
+					  <h2 class="text-white text-xl font-semibold">Vsensor</h2>
+					</div>
+					<div class="flex items-end justify-between">
+					  <div>
+						<div class={["text-7xl font-black mb-2", get_temp_class(@current.vsensor)]}>
+						  <%= Float.round(@current.vsensor, 1) %>
+						</div>
+						<div class="text-2xl text-gray-400">Volts</div>
+					  </div>
+					  
+					</div>
+				  </div>
+				</div>
+				
+				
+				
+				</div>
 			  			  <!-- Chart Section -->
 			  <div class="relative group mb-12">
 				<div class="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-50"></div>
@@ -233,10 +254,10 @@ defmodule GasSensorWeb.SensorDetailLive do
 				  <div class="bg-slate-900 rounded-xl p-6">
 					<div style="height: 550px; position: relative; width: 100%;">
 					  <canvas 
-						 id="sensorChart" 
-						 phx-hook="SensorChart" 
+						 id="sensorChart_volts" 
+						 phx-hook="SensorChart_volts" 
 						 class={if length(@history_1_minute) == 0, do: "hidden", else: ""}
-						 data-history={Jason.encode!(@history_1_minute)} 
+						 data-history-volts={Jason.encode!(@history_1_minute)} 
 						 phx-update="ignore">
 					   </canvas>
 					 </div>
@@ -249,47 +270,7 @@ defmodule GasSensorWeb.SensorDetailLive do
 				</div>
 			  </div>
 			  
-				
-			  <!-- Chart Section -->
-			  <div class="relative group mb-12">
-				<div class="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-50"></div>
-				<div class="relative bg-slate-800 rounded-2xl p-8">
-				  <div class="flex items-center justify-between mb-6">
-					<div>
-					  <h2 class="text-white text-2xl font-bold">5-Minute Trend</h2>
-					  <p class="text-purple-300 text-sm mt-1">
-						<%= length(@history) %> data points • Updates every 5s
-					  </p>
-					</div>
-					<div class="flex gap-4 text-sm">
-					  <div class="flex items-center gap-2">
-						<div class="w-4 h-1 bg-red-500 rounded"></div>
-						<span class="text-gray-300">CO PPM</span>
-					  </div>
-					  <div class="flex items-center gap-2">
-						<div class="w-4 h-1 bg-blue-500 rounded"></div>
-						<span class="text-gray-300">Temp</span>
-					  </div>
-					</div>
-				  </div>
-				  <div class="bg-slate-900 rounded-xl p-6">
-					<div style="height: 550px; position: relative; width: 100%;">
-					  <canvas 
-						 id="sensorChart" 
-						 phx-hook="SensorChart" 
-						 class={if length(@history) == 0, do: "hidden", else: ""}
-						 data-history={Jason.encode!(@history)} 
-						 phx-update="ignore">
-					   </canvas>
-					 </div>
-					 <%= if length(@history) == 0 do %>
-					   <div class="text-center py-12 text-gray-400">
-						 <p class="text-lg">📊 Collecting data...</p>
-					   </div>
-					 <% end %>
-				  </div>
-				</div>
-			  </div>
+			
 				
 			  <!-- Safety Reference -->
 			  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
@@ -306,7 +287,7 @@ defmodule GasSensorWeb.SensorDetailLive do
 				  <div class="text-gray-400 text-xs mt-1">Ventilate area</div>
 				</div>
 			  </div>
-				
+			  
 			  <!-- Footer -->
 			  <div class="text-center pb-8 text-gray-500 text-xs">
 				<p>Figaro TGS5042 Electrochemical CO Sensor</p>

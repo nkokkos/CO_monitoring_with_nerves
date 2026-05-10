@@ -14,7 +14,7 @@ defmodule GasSensorWeb.SensorDetailLive do
     if connected?(socket) do
       :timer.send_interval(@current_refresh, self(), :update_current)
       :timer.send_interval(@history_refresh, self(), :update_history)
-      :timer.send_interval(@history_refresh, self(), :update_history_1_minute)
+	  :timer.send_interval(@history_refresh, self(), :update_history_1_minute)
     end
 
     {:ok,
@@ -53,8 +53,8 @@ defmodule GasSensorWeb.SensorDetailLive do
     |> Enum.map(fn reading ->
       %{
         time: format_time(reading.timestamp),
-        co_ppm: reading.co_ppm,
-        temperature: reading.temperature_c
+        vsensor: reading.vsensor,
+        vref: reading.vref
       }
     end)
   end
@@ -67,8 +67,8 @@ defmodule GasSensorWeb.SensorDetailLive do
     |> Enum.map(fn reading ->
       %{
         time: format_time(reading.timestamp),
-        co_ppm: reading.co_ppm,
-        temperature: reading.temperature_c
+        vsensor: reading.vsensor,
+        vref: reading.vref
       }
     end)
   end
@@ -98,29 +98,22 @@ defmodule GasSensorWeb.SensorDetailLive do
 			  <span class="text-white font-bold text-xl tracking-tight">SensorHub</span>
 			</div>
 			
-							
-								<nav class="flex-1 px-4 space-y-2">
-				  <!-- 1. active (No border, no background) -->
-				  <.link navigate={~p"/sensor/detail"} class="flex items-center gap-3 px-4 py-3 text-white bg-indigo-600 
-					rounded-xl shadow-lg shadow-indigo-500/20 transition group">
-					<span class="font-medium">Live Monitor CO - TEMP </span>
-				  </.link>
-				  
-				  <!--INACTIVE (No border, no background) -->
-				  <.link navigate={~p"/sensor/volts"} class="flex items-center gap-3 px-4 py-3 
-					text-slate-400 rounded-xl hover:bg-white/5 hover:text-white transition group">
-					<span class="font-medium">Sensor PPM vs Volts</span>
-				  </.link>
-					
-				  <!-- inactive (Solid background, white text) -->
-				  <.link navigate={~p"/sensor/offset"} class="flex items-center gap-3 px-4 py-3 
-					text-slate-400 rounded-xl hover:bg-white/5 hover:text-white transition group">
-					<span class="font-medium">Sensor Config</span>
-				  </.link>
-				</nav>
-			
-			
-			
+			<nav class="flex-1 px-4 space-y-2">
+			  <.link navigate={~p"/dashboard"} class="flex items-center gap-3 px-4 py-3 text-indigo-100 bg-white/5 rounded-xl border border-white/10 group transition hover:bg-white/10">
+				<span class="text-xl group-hover:scale-110 transition">📊</span>
+				<span class="font-medium">Live Monitor</span>
+			  </.link>
+			  
+			  <.link navigate={~p"/history"} class="flex items-center gap-3 px-4 py-3 text-slate-400 rounded-xl hover:bg-white/5 hover:text-white transition group">
+				<span class="text-xl opacity-70 group-hover:opacity-100">🕒</span>
+				<span class="font-medium">Sensor Voltage</span>
+			  </.link>
+				
+			  <.link navigate={~p"/settings"} class="flex items-center gap-3 px-4 py-3 text-slate-400 rounded-xl hover:bg-white/5 hover:text-white transition group">
+				<span class="text-xl opacity-70 group-hover:opacity-100">⚙️</span>
+				<span class="font-medium">Sensor Config</span>
+			  </.link>
+			</nav>
 			
 			<div class="p-6">
 			  <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4">
@@ -128,12 +121,12 @@ defmodule GasSensorWeb.SensorDetailLive do
 				<p class="text-white text-sm mt-1">Raspberry Pi Zero W</p>
 				<div class="flex items-center gap-2 mt-2">
 				  <div class="w-2 h-2 rounded-full bg-green-500"></div>
-				  <!-- <span class="text-green-400 text-xs font-mono">Uptime: 14d 2h</span> -->
+				  <span class="text-green-400 text-xs font-mono">Uptime: 14d 2h</span>
 				</div>
 			  </div>
 			</div>
 		  </aside>
-			 
+			
 		  <!-- Main Content Area -->
 		  <main class="flex-1 h-screen overflow-y-auto overflow-x-hidden">
 			<!-- <div class="max-w-7xl mx-auto px-4 py-8 lg:px-8"> remove this to me the page wider-->
@@ -142,9 +135,9 @@ defmodule GasSensorWeb.SensorDetailLive do
 			  <div class="text-center mb-8">
 				<div class="inline-flex items-center gap-3 mb-4">
 				  <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-				  <h1 class="text-3xl font-bold text-white">TGS5042 CO Sensor</h1>
+				  <h1 class="text-5xl font-bold text-white">TGS5042 CO Sensor</h1>
 				</div>
-				<p class="text-purple-200 text-sm">Real-time Carbon Monoxide Monitoring</p>
+				<p class="text-purple-200 text-lg">Real-time Carbon Monoxide Monitoring</p>
 				<%= if @connected do %>
 				  <p class="text-green-400 text-sm mt-2">● Live • 1s updates</p>
 				<% else %>
@@ -164,20 +157,10 @@ defmodule GasSensorWeb.SensorDetailLive do
 					</div>
 					<div class="flex items-end justify-between">
 					  <div>
-						<div class={["text-7xl font-black mb-2", elem(get_co_status(@current.co_ppm), 2)]}>
-						  <%= Float.round(@current.co_ppm, 1) %>
+						<div class={["text-7xl font-black mb-2", elem(get_co_status(@current.vsensor), 2)]}>
+						  <%= Float.round(@current.vsensor, 1) %>
 						</div>
-						<div class="text-2xl text-gray-400">PPM</div>
-					  </div>
-					  <div class={[
-						"px-4 py-2 rounded-full text-sm font-bold",
-						case get_co_status(@current.co_ppm) do
-						  {:safe, _, _} -> "bg-green-500 text-white"
-						  {:moderate, _, _} -> "bg-yellow-500 text-white"
-						  {:high, _, _} -> "bg-red-500 text-white animate-pulse"
-						end
-					  ]}>
-						<%= elem(get_co_status(@current.co_ppm), 1) %>
+						<div class="text-2xl text-gray-400">Voltage</div>
 					  </div>
 					</div>
 				  </div>
@@ -188,20 +171,15 @@ defmodule GasSensorWeb.SensorDetailLive do
 				  <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl blur opacity-75 group-hover:opacity-100 transition"></div>
 				  <div class="relative bg-slate-800 rounded-2xl p-8 h-full">
 					<div class="flex items-center justify-between mb-6">
-					  <h2 class="text-white text-xl font-semibold">Temperature</h2>
+					  <h2 class="text-white text-xl font-semibold">Voltage Reference</h2>
 					  <div class="text-4xl">🌡️</div>
 					</div>
 					<div class="flex items-end justify-between">
 					  <div>
-						<div class={["text-7xl font-black mb-2", get_temp_class(@current.temperature_c)]}>
-						  <%= Float.round(@current.temperature_c, 1) %>
+						<div class={["text-7xl font-black mb-2", get_temp_class(@current.vref)]}>
+						  <%= Float.round(@current.vref, 1) %>
 						</div>
 						<div class="text-2xl text-gray-400">°C</div>
-					  </div>
-					  <div class="text-right text-gray-300 text-sm">
-					  <!--	<div><%#= Float.round(@current.temperature_c * 9/5 + 32, 1) %>°F</div> -->
-						<div class="text-3xl text-gray-500 mt-10">RH: <%= Float.round(@current.humidity_rh, 1) %>%</div>
-						<div class="text-3xl text-gray-500">Dew: <%= Float.round(@current.dew_point_c, 1) %>°C</div>
 					  </div>
 					</div>
 				  </div>
@@ -234,7 +212,7 @@ defmodule GasSensorWeb.SensorDetailLive do
 					<div style="height: 550px; position: relative; width: 100%;">
 					  <canvas 
 						 id="sensorChart" 
-						 phx-hook="SensorChart" 
+						 phx-hook="SensorVoltageChart" 
 						 class={if length(@history_1_minute) == 0, do: "hidden", else: ""}
 						 data-history={Jason.encode!(@history_1_minute)} 
 						 phx-update="ignore">

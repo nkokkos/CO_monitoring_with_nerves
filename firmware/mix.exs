@@ -78,16 +78,16 @@ defmodule Firmware.MixProject do
 
       # NervesTime keeps the system clock on Nerves devices in sync 
       # when connected to the network and close to in sync when disconnected.
-      #{:nerves_time, "~> 0.4.2", 	   targets: @all_targets},
+      {:nerves_time, "~> 0.4.2" },
 
       # NervesTimeZones provides a way of managing local time on embedded devices.  
-      #{:nerves_time_zones, "~> 0.3.2",    targets: @all_targets},
+      {:nerves_time_zones, "~> 0.3.2" },
 
       # add blinky dependency so it always flashes while the app is up
       # https://github.com/nerves-project/nerves_examples/tree/main/blinky
       # Look into the application.ex to see how it is used
-      {:delux, "~> 0.4.1", targets: @all_targets},
-
+      {:delux, "~> 0.4.1", targets: :rpi0},
+      {:jason, "~> 1.4"},
       # We will use I2C mainly for the breakout boards
       # These are included in the mix file of the otp app:
       # gas_sensor. They exist here as commented entries for

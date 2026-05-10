@@ -30,6 +30,8 @@ defmodule GasSensor.Sensor do
   require Logger
   import Bitwise
 
+  # Detailed Instruction on sampling the ADS1115 ADC:
+
   # We use the breakout board ADS1115 adc for sampling the output of the sensor + reference voltage
   # https://www.skroutz.gr/s/54629997/Ads1115-I2c-16-Bit-Adc-4-Channel-Module.html
 
@@ -57,6 +59,7 @@ defmodule GasSensor.Sensor do
   #   Bits 4-2                 → comparator settings, all 0 (unused)
   #   Bits 1-0   COMP_QUE = 11 → comparator disabled
   #
+  # We will be sampling at 8 samples per second:
   # At 8 SPS: peak-to-peak noise = 125µV
 
   # ADS1115 Register Addresses:
@@ -82,7 +85,7 @@ defmodule GasSensor.Sensor do
   # See how we use polling to read the ads1115 chip
   # @conversion_ms 140      # time to wait for the conversion register to get ready
 
-  @sample_interval 20_000 # how often we should we sample the inputs
+  @sample_interval 15_000 # how often we should we sample the inputs
   @number_of_samples 7    # sample 7 times for the median filter
 
   # TGS_5042 Sensor calibration: 
@@ -93,8 +96,9 @@ defmodule GasSensor.Sensor do
   # Temperature compensation table for TGS5042
   # This is based in the application note
   # "APPLICATION NOTES FOR TGS5xxx SERIES" - Revised 12/25
-  
   # Appendix 2 - Temperature Compensation Coefficients for Residential Usage:
+  # This is the look up table copied over from the datasheet:
+
   @temp_cf_table %{
     -10 => 0.752, -9  => 0.761, -8  => 0.771, -7 => 0.780,
     -6  => 0.789, -5  => 0.799, -4  => 0.808, -3 => 0.817,
@@ -115,8 +119,8 @@ defmodule GasSensor.Sensor do
      54 => 1.137,  55 => 1.138
   }
  
-  #According to the datasheet at 6-3:
-  #6-3 Temperature compensation
+  # According to the datasheet at 6-3:
+  # 6-3 Temperature compensation
   # It is necessary to continuously write the thermistor output into the microprocessor. Inside the
   # microprocessor, temperature compensation is carried
   # out by using the compensation coefficient table shown in Appendix 2. 
@@ -124,7 +128,9 @@ defmodule GasSensor.Sensor do
   # α = αt / CF
   # where:
   # CF = compensation coefficient at t˚ αt = CO sensitivity at t˚C
+  # 
   # 6-4 Calculation of CO concentration
+  # 
   # CO concentration (C) can be calculated by using
   # sensor output (Vout), sensor output in clean air (V0),
   # CO sensitivity at 20 ˚C (α), and feedback resistor (Rf)
@@ -133,6 +139,7 @@ defmodule GasSensor.Sensor do
   # When high accuracy is required, temperature
   # dependency of an op-amp should be considered
   
+  # Final Equation:
   # Note to myself: since we use an non inverting analog setup in our 
   # circuits the correct formula for our case is:
   # C = (Vout - V0) / (α × Rf) where V0 = Offset voltage at 0 CO ppm 
@@ -153,9 +160,9 @@ defmodule GasSensor.Sensor do
     cpu_temperature: 0.0,
     vref: 0.0,
     vsensor: 0.0,
-    vsensor_offset: 0.0,
     vdifferential: 0.0,
-    vref_variance: 0.0,
+    vsensor_offset: 0.0,
+    vref_variance: 0.0
   }
 
   # ── Public API ──────────────────────────────────────────
@@ -237,13 +244,14 @@ defmodule GasSensor.Sensor do
   
   @impl true
   def handle_info(:collect_sample, state) do
+    
     result = 
 
        with {:ok, bme680_data } <- BMP280.measure(:bme680),
             {:ok, cpu_temp }    <- GasSensor.HardwareTemp.read_cpu_temp(),
             {:ok, samples}      <- collect_samples(state.i2c, @number_of_samples) 
        do
-
+        
          differential_list = Enum.map(samples, fn s -> s.differential end)
          vref_list = Enum.map(samples, fn s -> s.vref end)
          vsensor_list = Enum.map(samples, fn s -> s.vsensor end) 
@@ -255,7 +263,8 @@ defmodule GasSensor.Sensor do
          vref_variance = variance(vref_list)
 
          # finally, calculate the ppm for the gas
-         final_ppm = convert_to_ppm(vdifferential_median, 
+         final_ppm = convert_to_ppm(vref_median,
+                                   vsensor_median, 
                                    bme680_data.temperature_c, 
                                    state.vsensor_offset) 
 
@@ -270,7 +279,6 @@ defmodule GasSensor.Sensor do
            cpu_temperature: cpu_temp,
            vref: vref_median,
            vsensor: vsensor_median,
-           vsensor_offset: 0.0,
            vdifferential: vdifferential_median,
            vref_variance: vref_variance,
          }
@@ -310,9 +318,9 @@ defmodule GasSensor.Sensor do
               new_state
        end
 
-      # Schedule next sample
-        Process.send_after(self(), :collect_sample, @sample_interval)
-
+       # Schedule next sample
+       Process.send_after(self(), :collect_sample, @sample_interval)
+       
       {:noreply, result}
   end
 
@@ -336,15 +344,15 @@ defmodule GasSensor.Sensor do
     with {:ok, raw_a0} <- read_channel(@config_msb_a0, i2c_ref),
          {:ok, raw_a1} <- read_channel(@config_msb_a1, i2c_ref) 
     do
-      # 1. Convert raw counts to volts
+      # Convert raw counts to volts
       v_ref    = raw_a0 * @volts_per_count
       v_halved = raw_a1 * @volts_per_count
 
-      # 2. Reconstruct the signal
+      # Reconstruct the signal
       # Multiply by 2.0 to reverse the hardware voltage divider
       v_op_amp = v_halved * 2.0
 
-      # 3. Calculate differential
+      # Calculate differential
       # This removes the ~2.0V bias of the reference singal to isolate the sensor signal
       differential = v_op_amp - v_ref
 
@@ -482,7 +490,8 @@ defmodule GasSensor.Sensor do
 
  # This is for the correction factor used in the appendinx 2
   defp get_correction_factor(temp) do
-    #Immediately turn whatever we got into a whole number (Integer)
+    
+    # Immediately turn whatever we got into a whole number (Integer)
     # round() works on both floats (22.5 -> 23) and integers (23 -> 23)
     target_temp = round(temp)
 
@@ -504,7 +513,8 @@ defmodule GasSensor.Sensor do
 
   end
 
-  # Final PPM conversion using the differential
+
+  # "APPLICATION NOTES FOR TGS5xxx SERIES" - Revised 12/25
 
   # According to the datasheet at 6-3:
   # 6-3 Temperature compensation
@@ -528,18 +538,30 @@ defmodule GasSensor.Sensor do
   # circuits the correct formula for our case is:
 
   # C = (Vout - V0) / (α × Rf) where V0 = Offset voltage at 0 CO ppm
+  
+  # We should use a ratiometric approach since the 5 volts supplying 
+  # the 2 volts reference and the op amp is the same.
+  # If there is change in Vref, then it should affect the Vsensor too.
+  # By doing ratiometric work, we eliminate the fluctuations.
 
-  defp convert_to_ppm(differential, temp, vsensor_offset) do
+  defp convert_to_ppm(vref, vsensor, temp, vsensor_offset) do
+    
+    # get the correction factor for the look up table
     cf = get_correction_factor(temp)
-  
-    # subtract any leftover calibration offset if necessary
-    true_signal = differential - (vsensor_offset * 2)
-  
+
+    # calculate CO using calibrated offset    
+    v_zero = vref + vsensor_offset # note that vsensor_offset comes from a state
+                                   # variable that we can update during the 
+                                   # initial calibration phase of 0 CO ppm
+    
+    # calculate delta and alpha according to the data sheet
+    delta = vsensor - v_zero 
     alpha = (@sensitivity_na_per_ppm * 1.0e-9) * cf
 
-    # Since we can't have "negative" gas, this line ensures that we always see 0.0 if the air is clean.
+    # Since we can't have "negative" gas, this line ensures that we always 
+    # see 0.0 if the air is clean.
     # clamp this to a valid range between 0.0 and 10000
-    (true_signal / (alpha * @r3_ohms)) |> max(0.0) |> min(10_000.0)
+    (delta / (alpha * @r3_ohms)) |> max(0.0) |> min(10_000.0)
   end
 
   # Variance - This calculates the variance of the elements in a list

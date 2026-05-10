@@ -57,7 +57,7 @@ defmodule GasSensorWeb.MixProject do
       {:gettext, "~> 0.20"},
 
       # Business logic from local poncho
-      # {:gas_sensor, path: "../gas_sensor"},
+      #{:gas_sensor, path: "../gas_sensor"},
 
       # Only for development
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},

@@ -20,11 +20,18 @@ defmodule GasSensorWeb.Router do
   scope "/", GasSensorWeb do
     pipe_through(:browser)
 
-    live("/", DashboardLive, :index)
-    live("/sensor", SensorLive, :index)
-    
+    #live("/", DashboardLive, :index)
+    #live("/sensor", SensorLive, :index)
+  
+    live "/", SensorDetailLive, :index
+
     # set up the new graph
     live("/sensor/detail", SensorDetailLive, :index)
+
+    # set up the configuration page for vsensor offset
+    live("/sensor/offset", VsensoroffsetLive, :index)    
+
+    live("/sensor/volts", SensorVoltsLive, :index)
   end
 
   # API endpoint for sensor data (optional)

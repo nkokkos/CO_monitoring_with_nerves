@@ -89,8 +89,9 @@ defmodule GasSensor.History do
   Called by GasSensor.ReadingAgent.
   """
   def record_to_ets(timestamp, reading) do
-    unix_ts = DateTime.to_unix(timestamp, :millisecond)
-    :ets.insert(@table_name, {unix_ts, reading})
+    # unix_ts = DateTime.to_unix(timestamp, :millisecond)
+    # timestamp is already in unix_ms:
+    :ets.insert(@table_name, {timestamp, reading})
   end
 
   @doc """
@@ -106,8 +107,8 @@ defmodule GasSensor.History do
   """
   def get_last_24h do
     # Use reliable timestamp (handles Pi Zero W without RTC)
-    {now, _reliable?} = GasSensorWeb.Simulator.Timestamp.now()
-    cutoff = DateTime.add(now, -@retention_seconds_24h)
+    {now, _reliable?} = GasSensor.Timestamp.now_with_reliability() 
+    cutoff = DateTime.add(now, -@retention_seconds_24h, :second)
     get_since(cutoff)
   end
 
@@ -116,8 +117,8 @@ defmodule GasSensor.History do
   """
   def get_last_7_days do 
    # Use reliable timestamp (handles Pi Zero W without RTC)
-   {now, _reliable?} = GasSensorWeb.Simulator.Timestamp.now()
-   cutoff = DateTime.add(now, -@retention_seconds)
+   {now, _reliable?} = GasSensor.Timestamp.now_with_reliability()
+   cutoff = DateTime.add(now, -@retention_seconds, :second)
    get_since(cutoff)
   end
 
@@ -276,7 +277,7 @@ defmodule GasSensor.History do
 
   @impl true
   def handle_info(:cleanup, state) do
-    cleanup_old_entries()
+    #cleanup_old_entries()
     schedule_cleanup()
     {:noreply, state}
   end
@@ -289,7 +290,7 @@ defmodule GasSensor.History do
 
   defp cleanup_old_entries do
     # Calculate the "Expiration Date"
-    {now, _reliable?} = GasSensorWeb.Simulator.Timestamp.now()
+    {now, _reliable?} = GasSensor.Timestamp.now_with_reliability
     cutoff = DateTime.add(now, -@retention_seconds, :second)
 
     # match_spec for 2-element tuple: {timestamp, reading_map}
@@ -304,7 +305,7 @@ defmodule GasSensor.History do
 
     deleted = :ets.select_delete(@table_name, match_spec)
     
-    if deleted > 0
+    if deleted > 0 do 
       Logger.debug("Cleaned up #{deleted} old entries")
     end
 
@@ -367,6 +368,8 @@ defmodule GasSensor.History do
    # peak_co = Enum.max_by([r11,r12,r13,r14,r15], co_ppm) # finds peak inside bucket 3 only
    # flat_map and map both iterate item by item. 
    # The only difference is flat_map flattens the result at the end. 
+
+    # Examine if we have to use Enum.flat_map instead of Enum.map
 
     samples
     |> Enum.chunk_every(bucket_size, bucket_size, :discard)
