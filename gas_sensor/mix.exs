@@ -28,6 +28,8 @@ defmodule GasSensor.MixProject do
       {:circuits_i2c,  "~> 2.0"},
       {:circuits_gpio, "~> 2.1"},
 
+      {:vintage_net_wizard, "~> 0.4"},
+
       # Use Bosch barometric pressure sensors in Elixir 
       # use this librar maintained by Frank Hunleth:
       # https://github.com/elixir-sensors/bmp280

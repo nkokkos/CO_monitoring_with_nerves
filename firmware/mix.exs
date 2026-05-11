@@ -71,10 +71,13 @@ defmodule Firmware.MixProject do
       {:nerves_system_mangopi_mq_pro, "~> 0.4", runtime: false, targets: :mangopi_mq_pro},
 
       # Enable networking, direct, gadget mode and net wizard to connect to wifi router
-      {:vintage_net,        "~> 0.13",    targets: @all_targets},
-      {:vintage_net_wifi,   "~> 0.12",    targets: @all_targets},    
-      {:vintage_net_direct, "~> 0.10.7",  targets: @all_targets},
-      {:vintage_net_wizard, "~> 0.4",     targets: @all_targets},
+      {:vintage_net,        "~> 0.13" },
+      {:vintage_net_wifi,   "~> 0.12" },    
+      {:vintage_net_direct, "~> 0.10.7" },
+      
+      # let's see if it boots up from gas_sensor
+      # use the example here: https://github.com/nerves-networking/vintage_net_wizard/tree/main/example/lib/wizard_example
+      {:vintage_net_wizard, "~> 0.4"},
 
       # NervesTime keeps the system clock on Nerves devices in sync 
       # when connected to the network and close to in sync when disconnected.
@@ -135,7 +138,7 @@ defmodule Firmware.MixProject do
       strip_beams: Mix.env() == :prod
 
       # don't include this for the time being
-      rel/vm.args.eex contains VM optimizations for Pi Zero W
+      # rel/vm.args.eex contains VM optimizations for Pi Zero W
     ]
   end
 end

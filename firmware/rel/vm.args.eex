@@ -10,7 +10,7 @@
 ##+Q 65536
 
 ## Tweak GC to run more often
-##-env ERL_FULLSWEEP_AFTER 10
+-env ERL_FULLSWEEP_AFTER 10
 
 ## Use Ctrl-C to interrupt the current shell rather than invoking the emulator's
 ## break handler and possibly exiting the VM.

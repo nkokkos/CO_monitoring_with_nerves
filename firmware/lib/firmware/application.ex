@@ -77,13 +77,28 @@ defmodule Firmware.Application do
     # because once this app loads, the blink never happens.
     File.write("/sys/class/leds/ACT/trigger", "none")  
 
+    # gpio pin for the Vintagenet wizard:
+    gpio_pin = 17
+
     children = [
+      
       # Add your other workers here (like your I2C sensor worker)
+      
       {Delux, [
         name: Delux,
         indicators: %{status: %{green: "ACT"}},
         initial: %{status: Delux.Effects.blink(:on, 2)}
-      ]}
+      ]},
+   
+      # Vintage net wizard:
+      %{
+        id: Firmware.Button,
+        start: {Firmware.Button, :start_link, [gpio_pin]},
+        type: worker,
+        restart: :permanent,
+        shutdown: 500
+       }     
+
     ]
 
   opts = [strategy: :one_for_one, name: Firmware.Supervisor]
