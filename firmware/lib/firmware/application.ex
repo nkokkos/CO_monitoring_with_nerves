@@ -62,6 +62,8 @@ defmodule Firmware.Application do
     # :sys.get_state(Delux)
     # to find out more about the Delux configuration
 
+    # Examples for the Delux library:
+
     # This will turn the green light on - steady
     # Delux.render(%{status: Delux.Effects.on(:green)}, :notification)
 
@@ -77,28 +79,25 @@ defmodule Firmware.Application do
     # because once this app loads, the blink never happens.
     File.write("/sys/class/leds/ACT/trigger", "none")  
 
-    # gpio pin for the Vintagenet wizard:
-    gpio_pin = 17
+    # gpio pin for the VintageNetwizard:
+    # https://github.com/nerves-networking/vintage_net_wizard
+    # read the config file at /config/target.exs
+    # Summary:
+    # Whey you press the button connected to pin 17 for 5 seconds
+    # an  with the name TGS5052-SETUP will show up
+    # go to 192.168.0.1 or tgs5042.local 
 
     children = [
       
-      # Add your other workers here (like your I2C sensor worker)
-      
+      # start the Delux genserver      
       {Delux, [
         name: Delux,
         indicators: %{status: %{green: "ACT"}},
-        initial: %{status: Delux.Effects.blink(:on, 2)}
+        initial: %{status: Delux.Effects.blink(:on, 5)}
       ]},
-   
-      # Vintage net wizard:
-      %{
-        id: Firmware.Button,
-        start: {Firmware.Button, :start_link, [gpio_pin]},
-        type: worker,
-        restart: :permanent,
-        shutdown: 500
-       }     
 
+      # Vintage net wizard:
+      {Firmware.Button, [17]}
     ]
 
   opts = [strategy: :one_for_one, name: Firmware.Supervisor]
@@ -106,7 +105,7 @@ defmodule Firmware.Application do
   case Supervisor.start_link(children, opts) do
     {:ok, pid} ->
       # Force a refresh just in case the init-blink was missed
-      Delux.render(%{status: Delux.Effects.blink(:on, 1)})
+      Delux.render(%{status: Delux.Effects.blink(:on, 5)})
       {:ok, pid}
 
     {:error, reason} ->

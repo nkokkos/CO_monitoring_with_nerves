@@ -85,22 +85,10 @@ defmodule GasSensor.Application do
       else
         @bme680 # grab the fake stubbed sensor : GasSensor.BME680.Stub
       end
-
-    # gpio pin for the Vintagenet wizard: 
-    #gpio_pin = 17     
  
     children = [
        
-       # Vintage net wizard:
-      #%{
-      #  id: GasSensor.Wizard
-      #  start: {GasSensor.Wizard, :start_link, [gpio_pin]},
-      #  type: worker,
-      #  restart: :permanent
-      #  shutdown: 500   
-      # },
-       
-       # reading agent agent:
+      # reading agent agent:
       %{
         id: GasSensor.ReadingAgent,              # A unique name for the supervisor to track
         start: {GasSensor.ReadingAgent, :start_link, [[]]}, # {Module, Function, [Args]}

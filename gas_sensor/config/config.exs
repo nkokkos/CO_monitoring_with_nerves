@@ -32,9 +32,9 @@ config :gas_sensor,
   temp_path: "/tmp/thermal/thermal_zone0/temp",  # when testing on the host machine, make sure this file exists in you linux system:
   env: :host                                     # This is for running on host, only for this OTP app. For GasSensor.Timestamp
 
-if Mix.env == :dev do
-  config :gas_sensor, config_file: "/tmp/offset_config.json"
-end
+#if Mix.env == :dev do
+#  config :gas_sensor, config_file: "/tmp/offset_config.json"
+#end
  
 # Target-specific configuration - We don't have more configurations
 import_config "#{Mix.target()}.exs"

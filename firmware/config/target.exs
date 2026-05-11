@@ -173,7 +173,12 @@ config :mdns_lite,
       protocol: "epmd",
       transport: "tcp",
       port: 4369
-    }
+    },
+    %{
+      protocol: "erlang-dist", 
+      transport: "tcp", 
+      port: 4370
+     }
   ]
 
 # Shoehorn configuration

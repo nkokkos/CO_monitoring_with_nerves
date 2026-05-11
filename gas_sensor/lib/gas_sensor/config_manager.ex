@@ -4,10 +4,13 @@
 # I call that value volt_zero.
 # The idea is that you take that value and you insert
 # it into the sensor genserver to start counting ppm
-# from zero.
+# from zero. It get read everytime the reading agent starts
+
 defmodule GasSensor.ConfigManager do 
-  # change this to "/data/offset_config.json" for rasberry pi
-  @config_file Application.compile_env(:gas_sensor, :config_file, "/home/vagrant/offset_config.json")
+
+  @config_file Application.compile_env(:gas_sensor, :config_file)
+  def get_config_file, do: @config_file  # expose it as a public function
+
   @default_config %{"vsensor_offset" => 0.0}
 
   def init() do 

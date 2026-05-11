@@ -74,9 +74,8 @@ defmodule Firmware.MixProject do
       {:vintage_net,        "~> 0.13" },
       {:vintage_net_wifi,   "~> 0.12" },    
       {:vintage_net_direct, "~> 0.10.7" },
-      
-      # let's see if it boots up from gas_sensor
-      # use the example here: https://github.com/nerves-networking/vintage_net_wizard/tree/main/example/lib/wizard_example
+     
+      # Enable Vintage Net Wizard.  
       {:vintage_net_wizard, "~> 0.4"},
 
       # NervesTime keeps the system clock on Nerves devices in sync 
@@ -98,7 +97,7 @@ defmodule Firmware.MixProject do
       # These are included in the mix file of the otp app:
       # gas_sensor. They exist here as commented entries for
       # reference
-      #{:circuits_gpio,  "~> 2.0"},
+       {:circuits_gpio,  "~> 2.0"}, # for the button wifi wizard
       #{:circuits_i2c,   "~> 2.0"},
 
       # Use Bosch barometric pressure sensors in Elixir 
@@ -114,7 +113,7 @@ defmodule Firmware.MixProject do
       # with the boards and getting the data out.
       # Including this otp this way, it forces the supervisor to start 
       # the app as dependency.
-      {:gas_sensor, path: "../gas_sensor", env: Mix.env()},
+      # {:gas_sensor, path: "../gas_sensor", env: Mix.env()},
 
       # Phoenix web interface that sports a simple web page that displays
       # data in live view
@@ -128,17 +127,21 @@ defmodule Firmware.MixProject do
     [
 
       overwrite: true,
-
+      
+      # vm.args.eex is automatically picked up - no config needed
+      # you don't have to include the following line, it will break, anyway.
+      # we searched and included an optimized vm file since we will be doing
+      # sampling, sending data and phoenix live view. 
+      # rel/vm.args.eex contains VM optimizations for Pi Zero W
+ 
       # Fixed cookie for demonstration and remote access via Livebook
       # In production, use a secure random cookie via env var: System.get_env("ERL_COOKIE")
-      cookie: "gas_sensor_demo_cookie_2026",
+      cookie: "tgs5042_demo_2026",
       
       include_erts: &Nerves.Release.erts/0,
       steps: [&Nerves.Release.init/1, :assemble],
       strip_beams: Mix.env() == :prod
 
-      # don't include this for the time being
-      # rel/vm.args.eex contains VM optimizations for Pi Zero W
     ]
   end
 end
