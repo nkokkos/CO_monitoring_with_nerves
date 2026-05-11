@@ -53,6 +53,9 @@ defmodule GasSensor.History do
       # Get downsampled data for graph (400 points max)
       graph_data = GasSensor.History.get_for_graph(400)
 
+      # Get downsampled data for graph of 7 days
+      graph_data = GasSensor.History.get_for_graph_7_days()
+    
       # Get specific time range
       range = GasSensor.History.get_range(
         DateTime.add(DateTime.utc_now(), -1, :hour),
@@ -81,7 +84,6 @@ defmodule GasSensor.History do
   # Maximum points to render for 7 days / 168 hours
   @max_samples_for_7_days_graph 300
 
-
   # ── Public API ──────────────────────────────────────────
 
   @doc """
@@ -89,8 +91,13 @@ defmodule GasSensor.History do
   Called by GasSensor.ReadingAgent.
   """
   def record_to_ets(timestamp, reading) do
+    # Note to myself:
+    # I used to do:
     # unix_ts = DateTime.to_unix(timestamp, :millisecond)
-    # timestamp is already in unix_ms:
+    # :ets.insert(@table_nane, {unix_ts, reading}) 
+    # but!! -->
+    # timestamp is already in unix_ms, so no need to do so.
+    # this applies and it is ok:
     :ets.insert(@table_name, {timestamp, reading})
   end
 
@@ -116,11 +123,20 @@ defmodule GasSensor.History do
   Gets all samples from the last 7 days
   """
   def get_last_7_days do 
-   # Use reliable timestamp (handles Pi Zero W without RTC)
-   {now, _reliable?} = GasSensor.Timestamp.now_with_reliability()
-   cutoff = DateTime.add(now, -@retention_seconds, :second)
-   get_since(cutoff)
+    # Use reliable timestamp (handles Pi Zero W without RTC)
+    {now, _reliable?} = GasSensor.Timestamp.now_with_reliability()
+    cutoff = DateTime.add(now, -@retention_seconds, :second)
+    get_since(cutoff)
   end
+ 
+  # We use this for graphing of 2 hours static. That's 480 points
+  # and we are ok with it. No need to downsample. 
+  def get_last_2_hours do
+    # Use reliable timestamp (handles Pi Zero W without RTC)
+    {now, _reliable?} = GasSensor.Timestamp.now_with_reliability()    
+    cutoff = DateTime.add(now, -7200, :second)
+    get_since(cutoff)
+  end   
 
   @doc """
   Gets samples since a specific time.
@@ -146,14 +162,23 @@ defmodule GasSensor.History do
       }
     ]
 
+    # Note here!!--->
+    # " |> Enum.map(fn {unix_ms, reading} ->"
+    # this means that unix_ms is simply a variable name we chose to
+    # represent the first element of the tuple. Since, we know that
+    # the first element is the timestamp which is in unix_ms, it is ok
+    # to assume that that variable return the correct saved timestamp in 
+    # unix_ms
+
+    # load the table based on the match_spec and return also
+    # a :timestamp_iso for graphing.  
     @table_name
     |> :ets.select(match_spec)
     |> Enum.map(fn {unix_ms, reading} ->
-     # rebuild from the ETS key
-     ts = DateTime.from_unix!(unix_ms, :millisecond)     
+      ts = DateTime.from_unix!(unix_ms, :millisecond)     
      
      reading 
-     |> Map.put(:timestamp, ts)
+     # |> Map.put(:timestamp, ts)  # no need to add again timestamp. Delete it after testing?
      |> Map.put(:timestamp_iso, DateTime.to_iso8601(ts)) 
    end)
     # Since it's an :ordered_set, it's already sorted by timestamp.
@@ -161,7 +186,7 @@ defmodule GasSensor.History do
     |> Enum.sort_by(& &1.timestamp, DateTime)
    
     # Note this why we used DateTime.to_iso8601
-    # :timestamp_iso
+    # :timestamp_iso to graph data
     # VegaLite cannot read Elixir DateTime structs. Use the :timestamp_iso field
   end
 

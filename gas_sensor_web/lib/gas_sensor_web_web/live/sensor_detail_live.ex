@@ -73,6 +73,10 @@ defmodule GasSensorWeb.SensorDetailLive do
     end)
   end
 
+  defp get_history_2_hours do 
+    
+  end
+
   defp format_time(%DateTime{} = ts) do
     Calendar.strftime(ts, "%H:%M:%S")
   end

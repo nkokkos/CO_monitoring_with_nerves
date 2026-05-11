@@ -2,9 +2,9 @@ defmodule GasSensor.Sensor do
   @moduledoc """
   GenServer for the TGS5042 Gas Sensor via ADS1115 ADC.
 
-  * Samples 11 times evenly spread every 10 seconds.
+  * Samples @number_of_samples times evenly spread every @sample_interval seconds.
   * Applies median filter and saves result to state.
-
+   
   ## Architecture Note
 
   This GenServer is the ONLY process that accesses the I2C bus.
@@ -62,7 +62,7 @@ defmodule GasSensor.Sensor do
   # We will be sampling at 8 samples per second:
   # At 8 SPS: peak-to-peak noise = 125µV
 
-  # ADS1115 Register Addresses:
+  # Configuration for the ADS1115 Register Addresses:
   # The ADS1115 has 4 registers. We will use two:
   #   0x00 → Conversion register  — holds the ADC result
   #   0x01 → Config register      — controls all chip settings
@@ -83,7 +83,7 @@ defmodule GasSensor.Sensor do
   
   # Not used here, since we used the polling technique. 
   # See how we use polling to read the ads1115 chip
-  # @conversion_ms 140      # time to wait for the conversion register to get ready
+  # @conversion_ms 140 # time to wait for the conversion register to get ready
 
   @sample_interval 15_000 # how often we should we sample the inputs
   @number_of_samples 7    # sample 7 times for the median filter
@@ -92,7 +92,7 @@ defmodule GasSensor.Sensor do
   @sensitivity_na_per_ppm 1.525 	# this is the number printed on the module we got.
   @r3_ohms 1_200_000                    # feed back resistor connected to the mcp6042 Op amp
                                         # of 1% sensitivity
- 
+
   # Temperature compensation table for TGS5042
   # This is based in the application note
   # "APPLICATION NOTES FOR TGS5xxx SERIES" - Revised 12/25

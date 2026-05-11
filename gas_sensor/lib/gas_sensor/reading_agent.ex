@@ -1,4 +1,7 @@
 defmodule GasSensor.ReadingAgent do
+  
+  use Agent # make this an agent to held state!!!!
+
   @moduledoc """
 
   Agent that stores the latest sensor readings for non-blocking access.
@@ -162,8 +165,7 @@ defmodule GasSensor.ReadingAgent do
     # Check time reliability
     {timestamp, reliable?} = GasSensor.Timestamp.now_with_reliability()
 
-
-    # convert to unix_milliseconds 
+    # convert timestamp to unix_milliseconds 
     unix_ms = DateTime.to_unix(timestamp, :millisecond)
     reading_with_timestamp =
       reading
@@ -180,7 +182,7 @@ defmodule GasSensor.ReadingAgent do
 
     # Synchronize with History
     # Use integer Unix ms as ETS key — not the DateTime struct.
-    # See History module for why.
+    # See History module why we do this so.
     # We pass the EXACT same map and timestamp to the ETS table
     # unix_ms = DateTime.to_unix(timestamp, :millisecond)
     # GasSensor.History.record_to_ets(timestamp, reading_with_timestamp)

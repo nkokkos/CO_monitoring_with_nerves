@@ -6,7 +6,8 @@
 # it into the sensor genserver to start counting ppm
 # from zero.
 defmodule GasSensor.ConfigManager do 
-  @config_file Application.compile_env(:gas_sensor, :config_file, "/data/offset_config.json")
+  # change this to "/data/offset_config.json" for rasberry pi
+  @config_file Application.compile_env(:gas_sensor, :config_file, "/home/vagrant/offset_config.json")
   @default_config %{"vsensor_offset" => 0.0}
 
   def init() do 

@@ -31,17 +31,17 @@ mix compile
 echo -e "${GREEN}✓ gas_sensor compiled successfully${NC}"
 echo ""
 
-# Step 2: Build gas_sensor_web (Phoenix web interface)
-#echo -e "${YELLOW}Step 2: Building gas_sensor_web (web interface)...${NC}"
-#cd "$PROJECT_ROOT/gas_sensor_web"
-#mix deps.get
-#mix compile
-#echo -e "${GREEN}✓ gas_sensor_web compiled successfully${NC}"
-#echo ""
+#Step 2: Build gas_sensor_web (Phoenix web interface)
+echo -e "${YELLOW}Step 2: Building gas_sensor_web (web interface)...${NC}"
+cd "$PROJECT_ROOT/gas_sensor_web"
+mix deps.get
+mix compile
+echo -e "${GREEN}✓ gas_sensor_web compiled successfully${NC}"
+echo ""
 
-# Step 3: Build sampler firmware (Nerves)
+# Step 3: Build firmware (Nerves)
 echo -e "${YELLOW}Step 3: Building sampler firmware (Nerves)...${NC}"
-cd "$PROJECT_ROOT/sampler"
+cd "$PROJECT_ROOT/firmware"
 
 # Check if MIX_TARGET is set
 if [ -z "$MIX_TARGET" ]; then
@@ -61,10 +61,10 @@ echo -e "${GREEN}Build Complete!${NC}"
 echo -e "${GREEN}======================================${NC}"
 echo ""
 echo "Firmware location:"
-ls -lh "$PROJECT_ROOT/sampler/_build/rpi0_dev/nerves/images/" 2>/dev/null || echo "  (Check _build/rpi0_dev/nerves/images/)"
+ls -lh "$PROJECT_ROOT/firmware/_build/rpi0_dev/nerves/images/" 2>/dev/null || echo "  (Check _build/rpi0_dev/nerves/images/)"
 echo ""
 echo "To burn to SD card, run:"
-echo "  cd $PROJECT_ROOT/sampler"
+echo "  cd $PROJECT_ROOT/firmware"
 echo "  mix burn"
 echo ""
 echo "Or use this script:"

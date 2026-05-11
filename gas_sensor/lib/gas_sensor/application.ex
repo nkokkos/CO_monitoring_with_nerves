@@ -88,20 +88,31 @@ defmodule GasSensor.Application do
 
     children = [
 
-      # Reading Agent starts first.
-      GasSensor.ReadingAgent,
+      %{
+        id: GasSensor.ReadingAgent,              # A unique name for the supervisor to track
+        start: {GasSensor.ReadingAgent, :start_link, [[]]}, # {Module, Function, [Args]}
+        type: :worker,                           # It's a worker, not another supervisor
+        restart: :permanent,                     # Restart it if it crashes
+        shutdown: 500                            # Give it 500ms to clean up on exit
+      },
 
       # Start the BMP280 Genserver for reading the BMP680 breakout board:
-      bme680_sensor,
+      # bme680_sensor,
      
       # Start the History Genserver which is responsible to saving 
       # historical data
-      GasSensor.History,
+      %{
+        id: GasSensor.History,              	 # A unique name for the supervisor to track
+        start: {GasSensor.History, :start_link, [[]]}, # {Module, Function, [Args]}
+        type: :worker,                           # It's a worker, not another supervisor
+        restart: :permanent,                     # Restart it if it crashes
+        shutdown: 500                            # Give it 500ms to clean up on exit
+      },
 
       # Finally, start GasSensor - only process that touches I2C
       # Depends on ReadingAgent and History (must start after)
       # Pass I2C bus configuration from app config
-      { GasSensor.Sensor, [i2c_bus: i2c_bus] }
+      # { GasSensor.Sensor, [i2c_bus: i2c_bus] }
     ]
 
     opts = [strategy: :one_for_one, name: GasSensor.Supervisor]

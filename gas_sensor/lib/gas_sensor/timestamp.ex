@@ -48,7 +48,7 @@ defmodule GasSensor.Timestamp do
   end
 
   @doc """ 
-    Returns current UTC time without a reliability check
+    Returns current UTC time without a 
   """
   def now do
     {ts, _reliable?} = now_with_reliability()

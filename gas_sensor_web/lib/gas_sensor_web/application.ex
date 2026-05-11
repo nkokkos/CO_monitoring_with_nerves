@@ -20,8 +20,8 @@ defmodule GasSensorWeb.Application do
       GasSensorWeb.Endpoint,
 
       # Add simulator components
-      GasSensorWeb.Simulator.ReadingAgent,
-      GasSensorWeb.Simulator.History,
+      #GasSensorWeb.Simulator.ReadingAgent,
+      # GasSensorWeb.Simulator.History,
       GasSensorWeb.Simulator.SensorSimulator
 
     ]

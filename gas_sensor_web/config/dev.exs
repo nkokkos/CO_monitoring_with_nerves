@@ -13,6 +13,12 @@ import Config
 config :gas_sensor_web,
   voffset_file: "/tmp/voffset_config.json"
 
+# This is used in GasSensor.Timestamp module to determine if we are in rasberry pi or dev
+# Include it here, so the GasSensor.Simulator.Timestamp should work correctly if
+# you are testing this app on dev machine. 
+config :gas_sensor, 
+   env: :host
+
 config :gas_sensor_web, GasSensorWeb.Endpoint,
   # 1. Identity for links
   url: [host: "localhost", port: 3001],

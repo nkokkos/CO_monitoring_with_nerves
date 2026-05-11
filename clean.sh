@@ -111,8 +111,8 @@ if [ "$NUCLEAR" = true ]; then
   echo ""
   
   # Calculate total size to be freed
-  GAS_SENSOR_SIZE=$(calculate_cleanup "core")
-  GAS_SENSOR_WEB_SIZE=$(calculate_cleanup "ui")
+  GAS_SENSOR_SIZE=$(calculate_cleanup "gas_sensor")
+  GAS_SENSOR_WEB_SIZE=$(calculate_cleanup "gas_sensor_web")
   SAMPLER_SIZE=$(calculate_cleanup "firmware")
   TOTAL_SIZE=$((GAS_SENSOR_SIZE + GAS_SENSOR_WEB_SIZE + SAMPLER_SIZE))
   
@@ -121,8 +121,8 @@ if [ "$NUCLEAR" = true ]; then
   echo "  - gas_sensor/deps"
   echo "  - gas_sensor_web/_build"
   echo "  - gas_sensor_web/deps"
-  echo "  - sampler/_build"
-  echo "  - sampler/deps"
+  echo "  - firmware/_build"
+  echo "  - firmware/deps"
   echo ""
   echo "Total space to be freed: $(format_size $TOTAL_SIZE)"
   echo ""
@@ -148,25 +148,25 @@ if [ "$NUCLEAR" = true ]; then
     echo "  - deps/ (already clean)"
   fi
   
-  # Step 2: gas_sensor_web
-  #echo -e "${BLUE}Cleaning gas_sensor_web...${NC}"
-  #cd "$PROJECT_ROOT/gas_sensor_web"
-  #if [ -d "_build" ]; then
-  #  rm -rf _build
-  #  echo -e "${GREEN}  ✓ Removed _build/$(format_size $GAS_SENSOR_WEB_SIZE)${NC}"
-  #else
-  #  echo "  - _build/ (already clean)"
-  #fi
-  #if [ -d "deps" ]; then
-  #  rm -rf deps
-  #  echo -e "${GREEN}  ✓ Removed deps/${NC}"
-  #else
-  #  echo "  - deps/ (already clean)"
-  #fi
+  #Step 2: gas_sensor_web
+  echo -e "${BLUE}Cleaning gas_sensor_web...${NC}"
+  cd "$PROJECT_ROOT/gas_sensor_web"
+  if [ -d "_build" ]; then
+    rm -rf _build
+    echo -e "${GREEN}  ✓ Removed _build/$(format_size $GAS_SENSOR_WEB_SIZE)${NC}"
+  else
+    echo "  - _build/ (already clean)"
+  fi
+  if [ -d "deps" ]; then
+    rm -rf deps
+    echo -e "${GREEN}  ✓ Removed deps/${NC}"
+  else
+    echo "  - deps/ (already clean)"
+  fi
   
-  # Step 3: sampler
+  # Step 3: firmware
   echo -e "${BLUE}Cleaning sampler...${NC}"
-  cd "$PROJECT_ROOT/sampler"
+  cd "$PROJECT_ROOT/firmware"
   if [ -d "_build" ]; then
     rm -rf _build
     echo -e "${GREEN}  ✓ Removed _build/$(format_size $SAMPLER_SIZE)${NC}"
@@ -228,9 +228,9 @@ else
     echo "  - No deps to clean"
   fi
   
-  # Step 3: Clean sampler
+  # Step 3: Clean firmware
   echo -e "${YELLOW}Step 3: Cleaning sampler...${NC}"
-  cd "$PROJECT_ROOT/sampler"
+  cd "$PROJECT_ROOT/firmware"
   export MIX_TARGET=rpi0
   if [ -d "_build" ]; then
     mix clean

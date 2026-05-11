@@ -87,7 +87,10 @@ defmodule Firmware.MixProject do
       # https://github.com/nerves-project/nerves_examples/tree/main/blinky
       # Look into the application.ex to see how it is used
       {:delux, "~> 0.4.1", targets: :rpi0},
+      
+      # Use the json parser 
       {:jason, "~> 1.4"},
+      
       # We will use I2C mainly for the breakout boards
       # These are included in the mix file of the otp app:
       # gas_sensor. They exist here as commented entries for
@@ -132,7 +135,7 @@ defmodule Firmware.MixProject do
       strip_beams: Mix.env() == :prod
 
       # don't include this for the time being
-      #rel/vm.args.eex contains VM optimizations for Pi Zero W
+      rel/vm.args.eex contains VM optimizations for Pi Zero W
     ]
   end
 end

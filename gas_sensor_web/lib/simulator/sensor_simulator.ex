@@ -4,7 +4,8 @@ defmodule GasSensorWeb.Simulator.SensorSimulator do
   Updates ReadingAgent and History just like real sensor.
   """
   use GenServer
-  alias GasSensorWeb.Simulator.{ReadingAgent, History}
+  
+  #alias GasSensorWeb.Simulator.{ReadingAgent, History}
 
   @update_interval 1_000  # 1 second updates
 
@@ -53,13 +54,13 @@ defmodule GasSensorWeb.Simulator.SensorSimulator do
     
     reading = %{
       co_ppm: ppm,
-      temperature_c: 20.0 + :rand.uniform() * 5,
+      temperature_c: 20.0 + :rand.uniform() * 35,
       humidity_rh: 45.0 + :rand.uniform() * 10,
       pressure_pa: 101325.0 + :rand.uniform() * 500,
       dew_point_c: 10.0 + :rand.uniform() * 5,
       gas_resistance_ohms: 50000.0 + :rand.uniform() * 10000,
       cpu_temperature: 31.0 + :rand.uniform() * 5,
-      vref: 2.0,
+      vref: 2.0 + :rand.uniform() * 2,
       vsensor: 1.041 + :rand.uniform() * 0.5,
       vsensor_offset: 0.1,
       vdifferential: 0.5,
@@ -67,10 +68,10 @@ defmodule GasSensorWeb.Simulator.SensorSimulator do
     }
     
     # Update Agent
-    ReadingAgent.add_sample(reading, :ok)
+    GasSensor.ReadingAgent.add_sample(reading, :ok)
     
     # Update History (ETS) Note: History update is done from Reading Agent
-    # History.record_to_ets(timestamp, reading)
+    # GasSensor.History.record_to_ets(timestamp, reading)
     
     # Return the new state 
     %{state | trend: new_trend} 
