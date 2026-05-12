@@ -1,3 +1,7 @@
+## Optimized erlang/kernel settings since we 
+## are running on an old rasberry pi zero wireless of
+# 2017 production
+
 ## Node name for Livebook/Observer access
 -name sampler@tgs5042.local
 
@@ -8,7 +12,7 @@
 -heart
 -env HEART_BEAT_TIMEOUT 60
 
-## Single scheduler (Pi Zero has 1 core)
+## Single scheduler (My Pi Zero has 1 core)
 +S 1:1
 
 ## More async threads for Phoenix + ThingsBoard HTTP/MQTT + WiFi
@@ -28,9 +32,9 @@
 
 ## ETS allocator - critical for 7 days of data storage
 +MEas aobf
-+MElmbcs 2048
-+MElmcs 1024
-+MEsmcs 1024
++MElmbcs 4096
++MElmcs 2048
++MEsmcs 2048
 
 ## Process limits (MQTT client + Phoenix + background tasks)
 +P 131072
@@ -46,6 +50,8 @@
 +C no_time_warp
 
 ## Distribution ports for Livebook
+## In case you don't need Livebook 
+## remove the following lines
 -kernel inet_dist_listen_min 4370
 -kernel inet_dist_listen_max 4370
 -kernel inet_dist_use_interface {0,0,0,0}

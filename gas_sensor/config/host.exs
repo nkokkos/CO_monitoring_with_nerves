@@ -10,7 +10,7 @@ config :gas_sensor, temp_path: "/tmp/thermal/thermal_zone0/temp"
 # Use the stubbed sensor when testing on host:
 
 # when testing on the host machine, used stubbed sensor
-config :gas_sensor, bme680_module: GasSensor.BME680.Stub
+config :gas_sensor, bme680_module: GasSensor.BME680_Stub
 
 # when testing on host, use the config file on temp
 config :gas_sensor, config_file: "/tmp/offset_config.json"

@@ -19,9 +19,25 @@ defmodule Firmware.Button do
 
   @impl GenServer
   def init(gpio_pin) do
-    {:ok, gpio} = GPIO.open(gpio_pin, :input)
-    :ok = GPIO.set_interrupts(gpio, :both)
-    {:ok, %{pin: gpio_pin, gpio: gpio}}
+
+    #{:ok, gpio} = GPIO.open(gpio_pin, :input)
+    #:ok = GPIO.set_interrupts(gpio, :both)
+    #{:ok, %{pin: gpio_pin, gpio: gpio}}
+
+    # add a case statement
+    case GPIO.open(gpio_pin, :input) do
+      {:ok, gpio} ->
+        :ok = GPIO.set_interrupts(gpio, :both)
+        {:ok, %{pin: gpio_pin, gpio: gpio}}
+
+      {:error, :not_found} ->
+        # Log a warning instead of crashing
+        IO.puts("--- [Firmware.Button] GPIO #{gpio_pin} not found. Running in host mode?")
+        {:ok, %{pin: gpio_pin, gpio: nil}}
+  end
+
+
+
   end
 
   @impl GenServer

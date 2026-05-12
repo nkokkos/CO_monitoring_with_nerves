@@ -90,14 +90,31 @@ defmodule Firmware.Application do
     children = [
       
       # start the Delux genserver      
-      {Delux, [
-        name: Delux,
-        indicators: %{status: %{green: "ACT"}},
-        initial: %{status: Delux.Effects.blink(:on, 5)}
-      ]},
+      #{Delux, [
+      #  name: Delux,
+      #  indicators: %{status: %{green: "ACT"}},
+      #  initial: %{status: Delux.Effects.blink(:on, 5)}
+      #]},
 
-      # Vintage net wizard:
-      {Firmware.Button, [17]}
+      # Load the VintageNetWizard Genserver using the child spec:
+      %{
+        id: Firmware.Button, # A unique name for the supervisor to track
+        start: {Firmware.Button, :start_link, [17] }, # {Module, Function, [Args]}
+        type: :worker,                           # It's a worker, not another supervisor
+        restart: :permanent,                     # Restart it if it crashes
+        shutdown: 500                            # Give it 500ms to clean up on exit
+      },
+      # Load the dummy genserver:
+      %{
+        id: Firmware.Dummy, # A unique name for the supervisor to track
+        start: {Firmware.Dummy, :start_link, ["Hello, World!"] }, # {Module, Function, [Args]}
+        type: :worker,                           # It's a worker, not another supervisor
+        restart: :permanent,                     # Restart it if it crashes
+        shutdown: 500                            # Give it 500ms to clean up on exit
+      },
+      
+      # This is the shortened way to load the genserver
+      # {Firmware.Button, 17}
     ]
 
   opts = [strategy: :one_for_one, name: Firmware.Supervisor]
@@ -105,7 +122,7 @@ defmodule Firmware.Application do
   case Supervisor.start_link(children, opts) do
     {:ok, pid} ->
       # Force a refresh just in case the init-blink was missed
-      Delux.render(%{status: Delux.Effects.blink(:on, 5)})
+      #Delux.render(%{status: Delux.Effects.blink(:on, 5)})
       {:ok, pid}
 
     {:error, reason} ->

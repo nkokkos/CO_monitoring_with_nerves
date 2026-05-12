@@ -83,7 +83,14 @@ defmodule GasSensor.Application do
        # and below when you call Supervisor.start_link(children, opts)
        # you start the genserver for this module
       else
-        @bme680 # grab the fake stubbed sensor : GasSensor.BME680.Stub
+        # @bme680 # grab the fake stubbed sensor : GasSensor.BME680.Stub
+        %{
+           id: GasSensor.BME680_Stub,                   # A unique name for the supervisor to track
+           start: {GasSensor.BME680_Stub, :start_link, []}, # {Module, Function, [Args]}
+           type: :worker,                           # It's a worker, not another supervisor
+           restart: :permanent,                     # Restart it if it crashes
+           shutdown: 500                            # Give it 500ms to clean up on exit
+         }
       end
  
     children = [
@@ -91,20 +98,20 @@ defmodule GasSensor.Application do
       # reading agent agent:
       %{
         id: GasSensor.ReadingAgent,              # A unique name for the supervisor to track
-        start: {GasSensor.ReadingAgent, :start_link, [[]]}, # {Module, Function, [Args]}
+        start: {GasSensor.ReadingAgent, :start_link, []}, # {Module, Function, [Args]}
         type: :worker,                           # It's a worker, not another supervisor
         restart: :permanent,                     # Restart it if it crashes
         shutdown: 500                            # Give it 500ms to clean up on exit
       },
 
       # Start the BMP280 Genserver for reading the BMP680 breakout board:
-      # bme680_sensor,
+      bme680_sensor,
      
       # Start the History Genserver which is responsible to saving 
       # historical data
       %{
         id: GasSensor.History,              	 # A unique name for the supervisor to track
-        start: {GasSensor.History, :start_link, [[]]}, # {Module, Function, [Args]}
+        start: {GasSensor.History, :start_link, []}, # {Module, Function, [Args]}
         type: :worker,                           # It's a worker, not another supervisor
         restart: :permanent,                     # Restart it if it crashes
         shutdown: 500                            # Give it 500ms to clean up on exit

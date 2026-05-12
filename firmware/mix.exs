@@ -113,12 +113,12 @@ defmodule Firmware.MixProject do
       # with the boards and getting the data out.
       # Including this otp this way, it forces the supervisor to start 
       # the app as dependency.
-      # {:gas_sensor, path: "../gas_sensor", env: Mix.env()},
+      {:gas_sensor, path: "../gas_sensor", env: Mix.env()},
 
       # Phoenix web interface that sports a simple web page that displays
-      # data in live view
-      # Don't start it yes. Work is in progress
-      # {:gas_sensor_web, path: "../gas_sensor_web", targets: @targets},
+      # data in live view. Don't start it automatically when the firmware boots
+
+      {:gas_sensor_web, path: "../gas_sensor_web", runtime: false, targets: @all_targets},
     
     ]
   end

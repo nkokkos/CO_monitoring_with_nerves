@@ -56,7 +56,10 @@ defmodule GasSensorWeb.MixProject do
       # Internationalization
       {:gettext, "~> 0.20"},
 
-      # Business logic from local poncho
+      # Business logic from local poncho, 
+      # This line must be removed when you compile firmware
+      # this only exists, if you need to have access to methods
+      # in gas_sensor from this ui app.
       {:gas_sensor, path: "../gas_sensor", runtime: true},
       
       # Only for development

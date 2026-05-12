@@ -23,6 +23,10 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "Project root: $PROJECT_ROOT"
 echo ""
 
+export MIX_TARGET=rpi0
+echo "MIX_TARGET SET TO: $MIX_TARGET"
+echo ""
+
 # Step 1: Build gas_sensor (business logic)
 echo -e "${YELLOW}Step 1: Building gas_sensor (business logic)...${NC}"
 cd "$PROJECT_ROOT/gas_sensor"
@@ -68,4 +72,4 @@ echo "  cd $PROJECT_ROOT/firmware"
 echo "  mix burn"
 echo ""
 echo "Or use this script:"
-echo "  ./build.sh && cd sampler && mix burn"
+echo "  ./build.sh && cd firmware && mix burn"

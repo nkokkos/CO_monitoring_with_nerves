@@ -10,8 +10,13 @@ import Config
 #  watchers: [], 
 #  server: true
 
-config :gas_sensor_web,
-  voffset_file: "/tmp/voffset_config.json"
+# the top-level application always wins.
+# This for the case, we we run in dev mode on local and we 
+# use gas_sensor as dependency
+config :gas_sensor, 
+  temp_path: "/tmp/thermal/thermal_zone0/temp",
+  bme680_module: GasSensor.BME680_Stub,
+  config_file: "/tmp/offset_config.json"
 
 # This is used in GasSensor.Timestamp module to determine if we are in rasberry pi or dev
 # Include it here, so the GasSensor.Simulator.Timestamp should work correctly if
