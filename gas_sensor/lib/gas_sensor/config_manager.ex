@@ -17,20 +17,15 @@ defmodule GasSensor.ConfigManager do
   @default_config %{"vsensor_offset" => 0.0}
 
   def init() do
-    if @config_file == nil do
-      Logger.error("Config file path is nil! Check your config.exs or Nerves environment.")
-      @default_config
-    else 
-      case File.read(@config_file) do
-        {:ok, content} -> 
-          content 
-          |> Jason.decode!() 
+    case File.read(@config_file) do
+     {:ok, content} -> 
+       content 
+       |> Jason.decode!() 
 
-        {:error, :enoent} ->
-          File.mkdir_p!(Path.dirname(@config_file))
-          save_vsensor_offset(@default_config)
-          @default_config 
-      end
+     {:error, :enoent} ->
+       File.mkdir_p!(Path.dirname(@config_file))
+       save_vsensor_offset(@default_config)   
+       @default_offset 
     end
   end
 

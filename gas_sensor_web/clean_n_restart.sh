@@ -11,6 +11,9 @@ rm -rf _build
 rm -rf deps
 rm -rf priv/static/assets
 export MIX_TARGET=host
+cd "./assets"
+npm install
+cd "../"
 mix deps.get
 mix assets.build
 mix assets.deploy

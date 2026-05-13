@@ -123,7 +123,7 @@ defmodule Firmware.Application do
   case Supervisor.start_link(children, opts) do
     {:ok, pid} ->
       # Force a refresh just in case the init-blink was missed
-      Delux.render(%{status: Delux.Effects.blink(:on, 1)})
+      Delux.render(%{status: Delux.Effects.blink(:on, 5)})
       {:ok, pid}
 
     {:error, reason} ->

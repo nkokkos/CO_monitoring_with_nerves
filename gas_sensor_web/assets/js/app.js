@@ -197,24 +197,14 @@ Hooks.SensorChartHistory_2Hours = {
           },
           {
             label: 'Temperature',
-            data: data.map(d => d.temperature_c),
+            data: data.map(d => d.temperature),
             borderColor: '#3b82f6', // Blue
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
             yAxisID: 'y1',
             borderWidth: 3,
             tension: 0.4,
             fill: true
-          },
-          {
-            label: 'Humidity',
-            data: data.map(d => d.humidity_rh),
-            borderColor: '#10b981', // Green (Distinguishable from Temp)
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            yAxisID: 'y1',
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true
-          } 
+          }
         ]
       },
       options: {
@@ -232,7 +222,7 @@ Hooks.SensorChartHistory_2Hours = {
             type: 'linear',
             display: true,
             position: 'right',
-            title: { display: true, text: 'Temp / Humidity' },
+            title: { display: true, text: 'Temp' },
             // Grid lines on the right axis can make the chart look messy
             grid: { drawOnChartArea: false } 
           }
@@ -264,8 +254,7 @@ Hooks.SensorChartHistory_2Hours = {
     
     // Update both lines
     this.chart.data.datasets[0].data = data.map(d => d.co_ppm);
-    this.chart.data.datasets[1].data = data.map(d => d.temperature_c);
-    this.chart.data.datasets[2].data = data.map(d => d.humidity_rh);
+    this.chart.data.datasets[1].data = data.map(d => d.temperature);
     // 'none' prevents the chart from bouncing/animating on every tick
     this.chart.update('none');
   }

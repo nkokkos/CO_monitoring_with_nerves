@@ -121,7 +121,7 @@ defmodule GasSensorWeb.SensorVoltsLive do
 				  
 				  <.link navigate={~p"/sensor/history"} class="flex items-center gap-3 px-4 py-3 
 					text-slate-400 rounded-xl hover:bg-white/5 hover:text-white transition group">
-					<span class="font-medium">Sensor Config</span>
+					<span class="font-medium">Sensor Data History</span>
 				  </.link>
 					
 					

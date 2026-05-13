@@ -3,12 +3,12 @@ defmodule GasSensorWeb.VsensoroffsetLive do
 
   def mount(_params, _session, socket) do 
    
-    # load configuration from file:
-    vsensor_offset_value = GasSensor.ConfigManager.get_vsensor_offset()
-  
+   # load configuration from file:
+   vsensor_offset_map   = GasSensor.ConfigManager.get_vsensor_offset()
+   vsensor_offset_value = vsensor_offset_map["vsensor_offset"]
     {:ok, 
       socket
-      |> assign(:vsensor_offset, vsensor_offset_value["vsensor_offset"]) # Your existing assign
+      |> assign(:vsensor_offset, vsensor_offset_value) # Your existing assign
       |> assign(:error, nil)          # Your existing assign
       |> assign(:connected, connected?(socket)) # ADD THIS LINE
     }
@@ -66,7 +66,7 @@ defmodule GasSensorWeb.VsensoroffsetLive do
 							  
 							  	<.link navigate={~p"/sensor/history"} class="flex items-center gap-3 px-4 py-3 
 								text-slate-400 rounded-xl hover:bg-white/5 hover:text-white transition group">
-								<span class="font-medium">Sensor Config</span>
+								<span class="font-medium">Sensor Data History</span>
 								</.link>
 								
 							  <!-- 3. ACTIVE (Solid background, white text) -->
@@ -143,7 +143,7 @@ defmodule GasSensorWeb.VsensoroffsetLive do
 									<% end %>
 									</div>
 								  </div>
-
+                                    
 								  
 								  <!-- Action Button -->
 								  <button type="submit" 

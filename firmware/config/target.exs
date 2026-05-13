@@ -4,6 +4,20 @@ import Config
 # See https://hexdocs.pm/ring_logger/readme.html for more information on
 # configuring ring_logger.
 
+config :gas_sensor_web, GasSensorWeb.Endpoint,
+  url: [host: "tgs5042.local"],
+  http: [port: 80],
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  secret_key_base: "HEY05EB1dFVSu6KykKHuS4rQPQzSHv4F7mGVB/gnDLrIu75wE/ytBXy2TaL3A6RA",
+  live_view: [signing_salt: "AAAABjEyERMkxgDh"],
+  check_origin: false,
+  # Start the server since we're running in a release instead of through `mix`
+  server: true,
+  render_errors: [view: UiWeb.ErrorView, accepts: ~w(html json), layout: false],
+  pubsub_server: Ui.PubSub,
+  # Nerves root filesystem is read-only, so disable the code reloader
+  code_reloader: false
+
 config :logger, backends: [RingLogger]
 
 # Save messages to one circular buffer that holds 1024 entries.

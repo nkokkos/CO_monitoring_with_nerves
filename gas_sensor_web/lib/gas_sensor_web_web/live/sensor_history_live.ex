@@ -53,10 +53,9 @@ defmodule GasSensorWeb.SensorHistoryLive do
     GasSensor.History.get_since(cutoff)
     |> Enum.map(fn reading ->
       %{
-        time: reading.timestamp_iso,
+        time: format_time(reading.timestamp),
         co_ppm: reading.co_ppm,
-        temperature: reading.temperature_c,
-	humidity: reading.humidity_rh,
+        temperature: reading.temperature_c
       }
     end)
   
@@ -120,7 +119,7 @@ defmodule GasSensorWeb.SensorHistoryLive do
 			</div>
 			
 							
-								<nav class="flex-1 px-4 space-y-2">
+				<nav class="flex-1 px-4 space-y-2">
 				  <!-- 1. inactive (No border, no background) -->
 				  <.link navigate={~p"/sensor/detail"} class="flex items-center gap-3 px-4 py-3 
 					text-slate-400 rounded-xl hover:bg-white/5 hover:text-white transition group">
@@ -136,7 +135,7 @@ defmodule GasSensorWeb.SensorHistoryLive do
 				   <!-- active (Solid background, white text) -->
 				  <.link navigate={~p"/sensor/history"} class="flex items-center gap-3 px-4 py-3 text-white bg-indigo-600 
 					rounded-xl shadow-lg shadow-indigo-500/20 transition group">
-					<span class="font-medium">Sensor Config</span>
+					<span class="font-medium">Sensor Data History</span>
 				  </.link>
 				  
 				  <!-- inactive (Solid background, white text) -->
@@ -193,7 +192,7 @@ defmodule GasSensorWeb.SensorHistoryLive do
 				<div class="relative bg-slate-800 rounded-2xl p-8">
 				  <div class="flex items-center justify-between mb-6">
 					<div>
-					  <h2 class="text-white text-2xl font-bold">1 Minute Trend</h2>
+					  <h2 class="text-white text-2xl font-bold">2 Hours Trend - CO and Temperature </h2>
 					  <p class="text-purple-300 text-sm mt-1">
 						<%= length(@history_2_hours) %> data points 
 					  </p>
@@ -219,16 +218,11 @@ defmodule GasSensorWeb.SensorHistoryLive do
 						 phx-update="ignore">
 					   </canvas>
 					 </div>
-					 <%= if length(@history_2_hours) == 0 do %>
-					   <div class="text-center py-12 text-gray-400">
-						 <p class="text-lg">📊 Collecting data...</p>
-					   </div>
-					 <% end %>
+					 
 				  </div>
 				</div>
 			  </div>
-			  
-				
+			  			
 				
 			  <!-- Safety Reference -->
 			  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">

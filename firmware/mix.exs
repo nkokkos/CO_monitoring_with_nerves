@@ -122,7 +122,8 @@ defmodule Firmware.MixProject do
       # Phoenix web interface that sports a simple web page that displays
       # data in live view. Don't start it automatically when the firmware boots,
       # this is what the runtime: false is about
-
+      {:gas_sensor_web, path: "../gas_sensor_web", targets: @all_targets, env: Mix.env()}
+      #{:gas_sensor_web, path: "../gas_sensor_web", targets: @all_targets},
       #{:gas_sensor_web, path: "../gas_sensor_web", runtime: false, targets: @all_targets},
     
     ]

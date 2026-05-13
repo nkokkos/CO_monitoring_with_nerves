@@ -60,6 +60,9 @@ config :logger, backends: [RingLogger]
 #  init: [:nerves_runtime, :nerves_pack],
 #  app:  :firmware
 
+# Use Jason for JSON parsing in Phoenix
+config :phoenix, :json_library, Jason
+
 # Picks ups configuration based on the host
 # What it does: host.exs contains settings for our host(laptop). For 
 # example using a fake Mock sensor
