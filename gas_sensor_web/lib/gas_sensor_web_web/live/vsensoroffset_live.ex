@@ -2,19 +2,17 @@ defmodule GasSensorWeb.VsensoroffsetLive do
   use GasSensorWeb, :live_view
 
   def mount(_params, _session, socket) do 
-    
-	#vsensor_offset = GasSensor.ReadingAgent.get_vsensor_offset()
-    #vsensor_offset = 1.0
-	
-	vsensor_offset_value = GasSensor.ConfigManager.get_vsensor_offset()
-	
-	{:ok, 
-    socket
-    |> assign(:vsensor_offset, vsensor_offset_value) # Your existing assign
-    |> assign(:error, nil)          # Your existing assign
-    |> assign(:connected, connected?(socket)) # ADD THIS LINE
-  }
-  end
+   
+    # load configuration from file:
+    vsensor_offset_value = GasSensor.ConfigManager.get_vsensor_offset()
+  
+    {:ok, 
+      socket
+      |> assign(:vsensor_offset, vsensor_offset_value["vsensor_offset"]) # Your existing assign
+      |> assign(:error, nil)          # Your existing assign
+      |> assign(:connected, connected?(socket)) # ADD THIS LINE
+    }
+    end
 
   def handle_event("save_settings", %{"vsensor_offset" => value}, socket) do 
     case parse_and_validate(value) do 

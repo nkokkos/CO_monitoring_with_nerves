@@ -33,13 +33,15 @@ defmodule GasSensor.Application do
   # Add build date to the firmware:
   # Note: when you do: mix firmware, build_date will be burned into the .beam file
   # so this will be true after compilation: GasSensor.Application.build_date()
-  @build_date DateTime.utc_now()   # just a module attribute, nothing special
-  def build_date, do: @build_date  # expose it as a public function
+  # This will be set the date we ran "mix firmware"
+ 
+  @build_date DateTime.utc_now() 
+  def build_date, do: @build_date  # expose it as a public function so you can call it as:
+                                   # Application.build_date
 
-  # grab the real sensor from the config
-  # if we compile on host, use the fake sensor 
-  @bme680 Application.compile_env(:gas_sensor, :bme680_module, BMP280)
-  
+  # grab the real sensor from the config: 
+  @bme680 Application.get_env(:gas_sensor, :bme680_module, BMP280)
+ 
   @impl true 
   def start(_type, _args) do
 
@@ -51,9 +53,9 @@ defmodule GasSensor.Application do
     # If you are on dev mode on host, i2c_bus will be i2c_bus_stub
     i2c_bus = Application.get_env(:gas_sensor, :i2c_bus, "i2c-1")
 
-    # Provision for real vs fake bme680 sensor
+    # Provision for real vs fake bme680 sensor. Build the child_spec for the genserver api
     bme680_sensor =
-      if @bme680 == BMP280 do
+      if @bme680 == BMP280 do # real sensor, we are connected to rpi0 and the breakout is on
 
         # remember from documentation:
         # https://github.com/elixir-sensors/bmp280
@@ -83,7 +85,7 @@ defmodule GasSensor.Application do
        # and below when you call Supervisor.start_link(children, opts)
        # you start the genserver for this module
       else
-        # @bme680 # grab the fake stubbed sensor : GasSensor.BME680.Stub
+        # grab the fake stubbed sensor : GasSensor.BME680.Stub
         %{
            id: GasSensor.BME680_Stub,                   # A unique name for the supervisor to track
            start: {GasSensor.BME680_Stub, :start_link, []}, # {Module, Function, [Args]}
@@ -120,7 +122,9 @@ defmodule GasSensor.Application do
       # Finally, start GasSensor - only process that touches I2C
       # Depends on ReadingAgent and History (must start after)
       # Pass I2C bus configuration from app config
-      { GasSensor.Sensor, [i2c_bus: i2c_bus] }
+      # { GasSensor.Sensor, [i2c_bus: i2c_bus] },
+
+      { GasSensor.TelemetryThingsboard, []}
     ]
 
     opts = [strategy: :one_for_one, name: GasSensor.Supervisor]

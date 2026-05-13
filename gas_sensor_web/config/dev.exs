@@ -13,16 +13,14 @@ import Config
 # the top-level application always wins.
 # This for the case, we we run in dev mode on local and we 
 # use gas_sensor as dependency
-config :gas_sensor, 
-  temp_path: "/tmp/thermal/thermal_zone0/temp",
-  bme680_module: GasSensor.BME680_Stub,
-  config_file: "/tmp/offset_config.json"
 
-# This is used in GasSensor.Timestamp module to determine if we are in rasberry pi or dev
-# Include it here, so the GasSensor.Simulator.Timestamp should work correctly if
-# you are testing this app on dev machine. 
-config :gas_sensor, 
-   env: :host
+# this should be loaded when we are running on host
+config :gas_sensor,
+  i2c_bus: "i2c-bus_stub",                       # the bus should be stubbed too.
+  bme680_module: GasSensor.BME680.Stub,          # use stub in tests, not real sensor
+  temp_path: "/tmp/thermal/thermal_zone0/temp",  # when testing on the host machine, make sure this file exists in you linux system:
+  env: :host,                                    # This is for running on host, only for this OTP app. For GasSensor.Timestamp
+  config: "/tmp/offset_config.json"              # This is for running on host, should create the file on linux on /tmp
 
 config :gas_sensor_web, GasSensorWeb.Endpoint,
   # 1. Identity for links
@@ -55,5 +53,3 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Include HEEx debug annotations as HTML comments in rendered markup
 config :phoenix_live_view, :debug_heex_annotations, true
-
-

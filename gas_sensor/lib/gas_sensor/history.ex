@@ -76,7 +76,7 @@ defmodule GasSensor.History do
   @retention_seconds_24h	86400  # 24 hours in seconds 
   
   # Cleanup every               60 seconds, 60_000 here refers to milliseconds
-  @cleanup_interval 60_000
+  @cleanup_interval 10_000
   
   # Maximum points to render for 24 hours
   @max_samples_for_graph 400
@@ -254,7 +254,8 @@ defmodule GasSensor.History do
       [{^timestamp, reading}] = :ets.lookup(@table_name, timestamp)
       
       # We merge the timestamp into the map so it's easy to use in Phoenix Live View
-      Map.put(reading, :timestamp, timestamp)
+      #Map.put(reading, :timestamp, timestamp) 
+      #|> Map.put(reading, :timestamp_iso, DateTime.from_unix!(reading.timestamp, :millisecond))
     end
   end
 
@@ -302,7 +303,7 @@ defmodule GasSensor.History do
 
   @impl true
   def handle_info(:cleanup, state) do
-    #cleanup_old_entries()
+    cleanup_old_entries()
     schedule_cleanup()
     {:noreply, state}
   end
@@ -316,7 +317,9 @@ defmodule GasSensor.History do
   defp cleanup_old_entries do
     # Calculate the "Expiration Date"
     {now, _reliable?} = GasSensor.Timestamp.now_with_reliability
-    cutoff = DateTime.add(now, -@retention_seconds, :second)
+    cutoff = 
+      DateTime.add(now, -@retention_seconds, :second)
+      |> DateTime.to_unix(:second)
 
     # match_spec for 2-element tuple: {timestamp, reading_map}
     # $1 = timestamp, $2 = map

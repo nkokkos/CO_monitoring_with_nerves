@@ -61,7 +61,7 @@ defmodule GasSensor.Timestamp do
   def ntp_synced? do
     case Application.get_env(:gas_sensor, :env, :host) do
       :host   -> reliable_time?(DateTime.utc_now()) # running on host, on this otp app. skip NervesTime on host, on this OTP app.
-      :target -> NervesTime.synchronized?() and reliable_time?(DateTime.utc_now()) # Running on rpi0
+      :rpi0   -> NervesTime.synchronized?() and reliable_time?(DateTime.utc_now()) # Running on rpi0
     end
   end
   
@@ -77,6 +77,13 @@ defmodule GasSensor.Timestamp do
   BEAM instance so the subtraction always gives correct elapsed seconds.
   """
   def provisional_timestamp do
+
+    # what is the boot_monotonic?? 
+    # Capture the monotonic zero point at runtime — in this BEAM instance.
+    # Used by Timestamp.provisional_timestamp/0 to compute elapsed seconds since boot.
+    # Remember this when we set it in application file? -->
+    # Application.put_env(:gas_sensor, :boot_monotonic, System.monotonic_time(:second))
+
     boot_monotonic = Application.get_env(:gas_sensor, :boot_monotonic, 0)
     elapsed_sec    = System.monotonic_time(:second) - boot_monotonic
     DateTime.add(GasSensor.Application.build_date, elapsed_sec)

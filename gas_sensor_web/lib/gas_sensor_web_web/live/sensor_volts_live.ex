@@ -21,6 +21,7 @@ defmodule GasSensorWeb.SensorVoltsLive do
      socket
      |> assign(:current, get_current())
      |> assign(:history, get_history())
+     |> assign(:current_time, get_reliable_timestamp())
      |> assign(:history_1_minute, get_history_1_minute())
      |> assign(:connected, connected?(socket))}
   end
@@ -76,6 +77,12 @@ defmodule GasSensorWeb.SensorVoltsLive do
   defp format_time(%DateTime{} = ts) do
     Calendar.strftime(ts, "%H:%M:%S")
   end
+
+  defp get_reliable_timestamp do 
+    {ts, _} = GasSensor.Timestamp.now_with_reliability()
+    ts
+  end
+
 
   defp get_co_status(ppm) when ppm < 50, do: {:safe, "Safe", "text-green-600"}
   defp get_co_status(ppm) when ppm < 100, do: {:moderate, "Moderate", "text-yellow-600"}
@@ -134,7 +141,7 @@ defmodule GasSensorWeb.SensorVoltsLive do
 				<p class="text-white text-sm mt-1">Raspberry Pi Zero W</p>
 				<div class="flex items-center gap-2 mt-2">
 				  <div class="w-2 h-2 rounded-full bg-green-500"></div>
-				  <!-- <span class="text-green-400 text-xs font-mono">Uptime: 14d 2h</span> -->
+				    <span class="text-green-400 text-xs font-mono"><%= @current_time %></span>
 				</div>
 			  </div>
 			</div>

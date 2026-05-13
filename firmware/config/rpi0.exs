@@ -18,9 +18,12 @@ config :firmware,
 # https://elixirforum.com/t/independent-applications-as-local-dependencies/57109/3
 # these keys will be available to rpi0 or real firmware on a real device
 # Note that temp_path refers to a real path on the rasberry pi zero wireless
+
+# This is our custom configuration for this project running on rpi0:
 config :gas_sensor,
   i2c_bus: "i2c-1",
   bme680_module: BMP280,
   temp_path: "/sys/class/thermal/thermal_zone0/temp",
-  env: :target, # this is for picking the correct time if we are running on rasberry pi. Look inside the GasSensor.Timestamp module
-  config: "/data/offset_config.json"  # this is for setting and saving the vsensor offset_config on the rasberry pi
+  env: :rpi0, # this is for picking the correct time if we are running on rasberry pi. Look inside the GasSensor.Timestamp module
+  config: "/data/offset_config.json"  # this is for setting and saving the vsensor offset_config on the rasberry pi, look
+                                      # in GasSensor.ConfigManager

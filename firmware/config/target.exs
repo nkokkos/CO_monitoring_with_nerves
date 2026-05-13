@@ -1,23 +1,40 @@
 import Config
 
-# Raspberry Pi Zero W specific configuration
-# Optimized for 512MB RAM
+# Use Ringlogger as the logger backend and remove :console.
+# See https://hexdocs.pm/ring_logger/readme.html for more information on
+# configuring ring_logger.
 
-# use example from the the poncho project file
-config :ui, UiWeb.Endpoint,
-  #url: [host: "nerves.local"],
-  url: [host: "0.0.0.0"],
-  http: [port: 8081],
-  cache_static_manifest: "priv/static/cache_manifest.json",
-  secret_key_base: "UPDATE_THIS_SECRET_KEY_BASE",
-  live_view: [signing_salt: "UPDATE_THIS_SIGNING_SALT"],
-  check_origin: false,
-  # Start the server since we're running in a release instead of through `mix`
-  server: false,
-  render_errors: [view: UiWeb.ErrorView, accepts: ~w(html json), layout: false],
-  pubsub_server: Ui.PubSub,
-  # Nerves root filesystem is read-only, so disable the code reloader
-  code_reloader: false
+config :logger, backends: [RingLogger]
+
+# Save messages to one circular buffer that holds 1024 entries.
+config :logger, RingLogger,
+  persist_path: "/data/ring_logger.log",
+  persist_seconds: 2000,
+  max_size: 1024
+
+# Use shoehorn to start the main application. See the shoehorn
+# library documentation for more control in ordering how OTP
+# applications are started and handling failures.
+
+config :shoehorn, init: [:nerves_runtime, :nerves_pack]
+
+# Enable the system startup guard to check that all OTP applications
+# started. If they didn't and you're on a Nerves system that supports
+# test runs of new firmware, the firmware will automatically roll
+# back to the previous version. Delete this if implementing your own
+# way of validating that firmware is good.
+config :nerves_runtime, startup_guard_enabled: true
+
+# Erlinit can be configured without a rootfs_overlay. See
+# https://github.com/nerves-project/erlinit/ for more information on
+# configuring erlinit.
+
+# Advance the system clock on devices without a real-time clock.
+config :nerves, :erlinit, update_clock: true
+
+# Force the Erlang VM to dump its "Black Box" to the SD card on crash
+config :nerves, :erlinit,
+  env: "ERL_CRASH_DUMP=/data/erl_crash.dump"
 
 # Configure networking (WiFi only on Pi Zero)
 # Direct connections like those used for USB gadget connections
@@ -32,13 +49,10 @@ config :ui, UiWeb.Endpoint,
 
 # There should be an .env file at the root of this otp app
 # Before mix firmware, do: source .env
-# example:
-#.env (DO NOT COMMIT THIS FILE .env)
-#export NERVES_WIFI_SSID="Your_SSID"
-#export NERVES_WIFI_PASS="Your_Password"
-
-
-# https://hexdocs.pm/vintage_net/0.6.1/readme.html
+# For example:
+# .env (DO NOT COMMIT THIS FILE .env)
+# export NERVES_WIFI_SSID="Your_SSID"
+# export NERVES_WIFI_PASS="Your_Password"
 
 config :vintage_net,
   regulatory_domain: "00",
@@ -58,7 +72,7 @@ config :vintage_net,
         },
         ipv4: %{method: :dhcp},
       }
-    } # Removed the trailing comma here because it's the last item
+    }
   ]
 
 # Configure vintage net wizard:
@@ -66,6 +80,7 @@ config :vintage_net,
 # https://hexdocs.pm/vintage_net_wizard/readme.html#configuration
 # Note that the documented way to launch the wizard with the captive_portal:false is this
 # VintageNetWizard.run_wizard(captive_portal: false) # as a runtime option
+
 config :vintage_net_wizard,
   ssid: "TGS5042-Setup",         # This needs to be tested. The ap mode should display this.
   port: 8080,                    # Change this from the default 80
@@ -76,13 +91,15 @@ config :vintage_net_wizard,
                                  # automatically "pops up" the login window when a 
                                  # device connects to the Nerves WiFi access point.
 
-# configure Nerves Time:
+
+# Configure Nerves Time:
 # Basically, block device startup for 5 seconds waiting for NTP response
 config :nerves_time, await_initialization_timeout: :timer.seconds(5)
 
 # Configure NTP servers for time synchronization
 # These are used by nerves_time to sync system clock
 # You can specify custom servers here (e.g., your own NTP server)
+
 config :nerves_time, :servers, [
   # Default NTP pool servers (recommended for most users)
   "0.pool.ntp.org",
@@ -101,6 +118,7 @@ config :nerves_time, :servers, [
   # "10.0.0.1",                 # Local network NTP
 ]
 
+# This section is important. Please read it carefully!
 # Configure the device for SSH IEx prompt access and firmware updates
 #
 # * See https://hexdocs.pm/nerves_ssh/readme.html for general SSH configuration
@@ -123,10 +141,12 @@ config :nerves_time, :servers, [
 # ls -l ~/.ssh/id_ed25519*
 
 # Step 4. Verify ssh connection 
-# If you have problem connecting and if you are using gadget mode 
+# If you have problem connecting to the nerves device and if you are using gadget mode 
 # and the nerves device is assigned an ip of 172.31.177.161, you need to do this: 
 # ssh-keygen -R 172.31.177.161
-# It might work for the direct wifi connections too.
+# When you run ssh-keygen -R 172.31.177.161, you are telling your computer to forget 
+# the specific digital fingerprint (the public host key) associated with that IP address.
+# It might work for the direct ip connections too.
 
 keys =
   [
@@ -180,20 +200,6 @@ config :mdns_lite,
       port: 4370
      }
   ]
-
-# Shoehorn configuration
-config :shoehorn,
-  init: [:nerves_runtime, :nerves_pack],
-  app: Mix.Project.config()[:app]
-
-# Force the Erlang VM to dump its "Black Box" to the SD card on crash
-config :nerves, :erlinit,
-  env: "ERL_CRASH_DUMP=/data/erl_crash.dump"
-
-config :logger, RingLogger,
-  persist_path: "/data/ring_logger",
-  persist_interval: 2000,
-  max_size: 500     # number of log entries in the ring buffer, not bytes
 
 # Import target specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

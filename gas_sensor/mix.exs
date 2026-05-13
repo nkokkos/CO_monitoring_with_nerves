@@ -41,7 +41,10 @@ defmodule GasSensor.MixProject do
       # NervesTimeZones provides a way of managing local time on embedded devices.
       {:nerves_time_zones, "~> 0.3.2"},
 
-      {:jason, "~> 1.4"}     
+      {:jason, "~> 1.4"},
+
+      # use mqtt broker to send data to thingsboard     
+      {:tortoise, "~> 0.10"},
  
       # add this package https://hex.pm/packages/fostrom
       # {:fostrom, "~> 0.1.0"}

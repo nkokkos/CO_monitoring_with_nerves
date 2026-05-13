@@ -1,6 +1,7 @@
 defmodule GasSensor.ReadingAgent do
   
   use Agent # make this an agent to held state!!!!
+  require Logger
 
   @moduledoc """
 
@@ -173,9 +174,10 @@ defmodule GasSensor.ReadingAgent do
       |> Map.put(:time_reliable, reliable?)
       |> Map.put(:status, status)
   
-    # Update the agent:
+    # This might create a problem. Update the agent:
     # Agent.update(@agent_name, fn _ -> reading_with_timestamp end)
 
+    # Better do a merge so you don't zero other old values:
     Agent.update(@agent_name, fn current_state ->
       Map.merge(current_state, reading_with_timestamp)
     end)

@@ -41,34 +41,42 @@ defmodule Firmware.MixProject do
     ]
   end
 
+  def cli do
+    [preferred_targets: [run: :host, test: :host]]
+  end
+
   defp deps do
     [
       # Core Nerves dependencies
-      {:nerves,       "~> 1.11", runtime: false},
+      {:nerves,       "~> 1.13", runtime: false},
       {:shoehorn,     "~> 0.9.1" },
       {:ring_logger,  "~> 0.11.0"},
       {:toolshed,     "~> 0.4.0" },
       
       # Allow Nerves.Runtime on host to support development, testing and CI
-      {:nerves_runtime, "~> 0.13.0"},
+      {:nerves_runtime, "~> 0.13.12"},
 
       # Nerves Pack for networking
-      {:nerves_pack, "~> 0.7.0", targets: @all_targets},
-
-      # Dependencies for most targets using the blinky example
-      {:nerves_system_rpi,      "~> 2.0", runtime: false, targets: :rpi},
-      {:nerves_system_rpi0,     "~> 2.0", runtime: false, targets: :rpi0},
-      {:nerves_system_rpi0_2,   "~> 2.0", runtime: false, targets: :rpi0_2},
-      {:nerves_system_rpi2,     "~> 2.0", runtime: false, targets: :rpi2},
-      {:nerves_system_rpi3,     "~> 2.0", runtime: false, targets: :rpi3},
-      {:nerves_system_rpi3a,    "~> 2.0", runtime: false, targets: :rpi3a},
-      {:nerves_system_rpi4,     "~> 2.0", runtime: false, targets: :rpi4},
-      {:nerves_system_rpi5,     "~> 2.0", runtime: false, targets: :rpi5},
-      {:nerves_system_bbb,      "~> 2.8", runtime: false, targets: :bbb},
-      {:nerves_system_osd32mp1, "~> 0.4", runtime: false, targets: :osd32mp1},
-      {:nerves_system_x86_64, "~> 1.13", runtime: false, targets: :x86_64},
-      {:nerves_system_grisp2, "~> 0.3", runtime: false, targets: :grisp2},
-      {:nerves_system_mangopi_mq_pro, "~> 0.4", runtime: false, targets: :mangopi_mq_pro},
+      {:nerves_pack, "~> 0.7.1", targets: @all_targets},
+       
+      # Dependencies for specific targets
+      # NOTE: It's generally low risk and recommended to follow minor version
+      # bumps to Nerves systems. Since these include Linux kernel and Erlang
+      # version updates, please review their release notes in case
+      # changes to your application are needed.
+      {:nerves_system_bbb, "~> 2.19", runtime: false, targets: :bbb},
+      {:nerves_system_grisp2, "~> 0.8", runtime: false, targets: :grisp2},
+      {:nerves_system_osd32mp1, "~> 0.15", runtime: false, targets: :osd32mp1},
+      {:nerves_system_mangopi_mq_pro, "~> 0.6", runtime: false, targets: :mangopi_mq_pro},
+      {:nerves_system_qemu_aarch64, "~> 0.1", runtime: false, targets: :qemu_aarch64},
+      {:nerves_system_rpi, "~> 2.0", runtime: false, targets: :rpi},
+      {:nerves_system_rpi0, "~> 2.0", runtime: false, targets: :rpi0},
+      {:nerves_system_rpi0_2, "~> 2.0", runtime: false, targets: :rpi0_2},
+      {:nerves_system_rpi2, "~> 2.0", runtime: false, targets: :rpi2},
+      {:nerves_system_rpi3, "~> 2.0", runtime: false, targets: :rpi3},
+      {:nerves_system_rpi4, "~> 2.0", runtime: false, targets: :rpi4},
+      {:nerves_system_rpi5, "~> 2.0", runtime: false, targets: :rpi5},
+      {:nerves_system_x86_64, "~> 1.24", runtime: false, targets: :x86_64},
 
       # Enable networking, direct, gadget mode and net wizard to connect to wifi router
       {:vintage_net,        "~> 0.13" },
@@ -93,12 +101,8 @@ defmodule Firmware.MixProject do
       # Use the json parser 
       {:jason, "~> 1.4"},
       
-      # We will use I2C mainly for the breakout boards
-      # These are included in the mix file of the otp app:
-      # gas_sensor. They exist here as commented entries for
-      # reference
-       {:circuits_gpio,  "~> 2.0"}, # for the button wifi wizard
-      #{:circuits_i2c,   "~> 2.0"},
+      # This is used for the button in VintageNetWizard
+      {:circuits_gpio,  "~> 2.0"}, # for the button wifi wizard
 
       # Use Bosch barometric pressure sensors in Elixir 
       # Use this library maintained by Frank Hunleth:
@@ -116,7 +120,8 @@ defmodule Firmware.MixProject do
       {:gas_sensor, path: "../gas_sensor", env: Mix.env()},
 
       # Phoenix web interface that sports a simple web page that displays
-      # data in live view. Don't start it automatically when the firmware boots
+      # data in live view. Don't start it automatically when the firmware boots,
+      # this is what the runtime: false is about
 
       #{:gas_sensor_web, path: "../gas_sensor_web", runtime: false, targets: @all_targets},
     
@@ -127,7 +132,10 @@ defmodule Firmware.MixProject do
     [
 
       overwrite: true,
+      # Erlang distribution is not started automatically.
+      # See https://hexdocs.pm/nerves_pack/readme.html#erlang-distribution
       
+      # Note about vm.args.eex:
       # vm.args.eex is automatically picked up - no config needed
       # you don't have to include the following line, it will break, anyway.
       # we searched and included an optimized vm file since we will be doing
@@ -144,4 +152,8 @@ defmodule Firmware.MixProject do
 
     ]
   end
+
+  # Uncomment the following line if using Phoenix > 1.8.
+  # defp listeners(:host, :dev), do: [Phoenix.CodeReloader]
+  defp listeners(_, _), do: []
 end

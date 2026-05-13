@@ -24,17 +24,14 @@ import Config
 # use for things that COULD change per device
 # example: i2c_bus = Application.get_env(:gas_sensor, :i2c_bus, "i2c-1")
 
-# defaults for running tests locally only in this OTP app
-
-config :gas_sensor,
-  i2c_bus: "i2c-bus_stub",                       # the bus should be stubbed too.
-  bme680_module: GasSensor.BME680.Stub,          # use stub in tests, not real sensor
-  temp_path: "/tmp/thermal/thermal_zone0/temp",  # when testing on the host machine, make sure this file exists in you linux system:
-  env: :host                                     # This is for running on host, only for this OTP app. For GasSensor.Timestamp
-
-#if Mix.env == :dev do
-#  config :gas_sensor, config_file: "/tmp/offset_config.json"
-#end
+# Picks ups configuration based on the host
+# What it does: host.exs contains settings for our host(laptop). For
+# example using a fake Mock sensor
+# Target.exs contains settings for the PI zero like wifi credentials, I2C bus
+# addresses for the devices we will use
+if Mix.target() == :host do
+  import_config "host.exs"
+else
+  import_config "target.exs"
+end
  
-# Target-specific configuration - We don't have more configurations
-import_config "#{Mix.target()}.exs"
