@@ -1,59 +1,60 @@
-# Run in Dev mode. This will run the whole system in dev mode. Will load a bandit server at 0.0.0.:3001 
+## Run in Dev mode. This will run the whole system in dev mode. Will load a bandit server at 0.0.0.0:3001 
 ```
 export MIX_TARGET=host
 mix deps.get
 iex -S mix
 ```
 
-# Create the firmware
+## Create the firmware
 ```
 export MIX_TARGET=rpi0
 mix deps.get
 mix firmware
 ```
 
-# Elixir Nerves commands 
-``
+## Elixir Nerves commands 
+```
 Application.started_applications
 top()
 cmd("free") or :erlang.memory()
 VintageNet.info()
 VintageNet.all_interfaces()
 ```
-# Check all environment in the firmare:
+
+## Check all environment in the firmare:
 ```
 Application.get_all_env(:firmware)
- ```
+```
 
-# Supervisor
+## Supervisor
 ```
 example:
 Supervisor.which_children(GasSensor.Supervisor)
 ```
 
-# Check ETS memory usage
+## Check ETS memory usage
 ```
 :ets.info(:your_table_name, :memory) * 8 / 1024 / 1024  # MB
 ```
 
-# Check total memory
+## Check total memory
 ```
 :erlang.memory()
 ```
 
-# Async threads
+## Async threads
 ```
 :erlang.system_info(:thread_pool_size)i
 ```
 
-# Upgrade Nerves
+## Upgrade Nerves
 ```
 mix local.hex --force
 mix local.rebar --force 
 mix archive.install hex nerves_bootstrap --force
 ```
 
-# Check for firmware version on boot
+## Check for firmware version on boot
 ```
 Nerves.Runtime.KV.get_active("nerves_fw_version")
 ```
