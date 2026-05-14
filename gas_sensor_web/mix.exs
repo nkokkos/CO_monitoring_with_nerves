@@ -4,7 +4,7 @@ defmodule GasSensorWeb.MixProject do
   def project do
     [
       app: :gas_sensor_web,
-      version: "0.2.2",
+      version: "0.2.3",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -47,7 +47,7 @@ defmodule GasSensorWeb.MixProject do
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
 
-      # Web server - Bandit is lighter than Cowboy for embedded
+      # Web server - Bandit is lighter than Cowboy for embedded systems
       {:bandit, "~> 1.0"},
 
       # JSON parsing
@@ -56,7 +56,7 @@ defmodule GasSensorWeb.MixProject do
       # Internationalization
       {:gettext, "~> 0.20"},
 
-      # Business logic from local poncho, must be uncommented when testing with firmware and being on production
+      # Business logic from local poncho, must be commented when testing with firmware and being on production
       #{:gas_sensor, path: "../gas_sensor"},
       
       # Only for development

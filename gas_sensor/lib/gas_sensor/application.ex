@@ -127,7 +127,7 @@ defmodule GasSensor.Application do
       # { GasSensor.Sensor, [i2c_bus: i2c_bus] }, 
       
       # Start telemetry genserver for data upload:
-      # { GasSensor.TelemetryThingsboard, []}
+      { GasSensor.TelemetryThingsboard, []}
     ]
 
     opts = [strategy: :one_for_one, name: GasSensor.Supervisor]
