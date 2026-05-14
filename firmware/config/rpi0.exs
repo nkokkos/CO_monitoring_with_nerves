@@ -27,3 +27,36 @@ config :gas_sensor,
   env: :rpi0, # this is for picking the correct time if we are running on rasberry pi. Look inside the GasSensor.Timestamp module
   config: "/data/offset_config.json"  # this is for setting and saving the vsensor offset_config on the rasberry pi, look
                                       # in GasSensor.ConfigManager
+ 
+# use this config example:
+# https://github.com/nerves-project/nerves_examples/blob/main/poncho_phoenix/firmware/config/target.exs
+
+config :gas_sensor_web, GasSensorWeb.Endpoint,
+  url: [host: "tgs5042.local"],
+  http: [port: 3001],
+  http: [ip: {0,0,0,0}, port: 3001],
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  secret_key_base: "im2VAbnBXgHTrb6tJQzsS7w84jbfiMQ6A3jamHvnYiOR10y43E2hcoostekTHXVe",
+  live_view: [signing_salt: "AqXWegTmfeVLuFlZFwnfUYz4c5WZur1VwzjgLKw/xgGGSEVGiLz3ZS4BqTYqdx3a"],
+  check_origin: false,
+  # Start the server since we're running in a release instead of through `mix`
+  server: true,
+  render_errors: [view: UiWeb.ErrorView, accepts: ~w(html json), layout: false],
+  pubsub_server: GasSensorWeb.PubSub,
+  # Nerves root filesystem is read-only, so disable the code reloader
+  code_reloader: false,
+  check_origin: false,
+  adapter: Bandit.PhoenixAdapter
+
+# Do not include metadata nor timestamps in development logs
+config :logger, :console, format: "[$level] $message\n"
+
+# Set a higher stacktrace during development
+config :phoenix, :stacktrace_depth, 20
+
+# Initialize plugs at runtime for faster development compilation
+config :phoenix, :plug_init_mode, :runtime
+
+# Include HEEx debug annotations as HTML comments in rendered markup
+config :phoenix_live_view, :debug_heex_annotations, true
+

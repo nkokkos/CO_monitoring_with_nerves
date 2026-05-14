@@ -1,3 +1,17 @@
+# Run in Dev mode. This will run the whole system in dev mode. Will load a bandit server at 0.0.0.:3001 
+```
+export MIX_TARGET=host
+mix deps.get
+iex -S mix
+```
+
+# Create the firmware
+```
+export MIX_TARGET=rpi0
+mix deps.get
+mix firmware
+```
+
 # Elixir Nerves commands 
 ``
 Application.started_applications
@@ -6,7 +20,6 @@ cmd("free") or :erlang.memory()
 VintageNet.info()
 VintageNet.all_interfaces()
 ```
-
 # Check all environment in the firmare:
 ```
 Application.get_all_env(:firmware)

@@ -1,7 +1,5 @@
 import Config
 
-# Production/Erlang release configuration for Raspberry Pi Zero W
-# Optimized for 512MB RAM constraint
 
 config :gas_sensor_web, GasSensorWeb.Endpoint,
   url: [host: "0.0.0.0", port: 80],

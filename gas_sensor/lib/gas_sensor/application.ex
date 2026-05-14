@@ -118,14 +118,16 @@ defmodule GasSensor.Application do
         restart: :permanent,                     # Restart it if it crashes
         shutdown: 500                            # Give it 500ms to clean up on exit
       },
-
-      # Finally, start GasSensor - only process that touches I2C
-      # Depends on ReadingAgent and History (must start after)
-      # Pass I2C bus configuration from app config
-      #{ GasSensor.Sensor, [i2c_bus: i2c_bus] },
-
+ 
+      # Start Simulator for dev mode. This should commented during
+      # during real production 
+      GasSensorWeb.Simulator.SensorSimulator,
+   
+      # Start the main sensor server. Must be enabled during real production:
+      # { GasSensor.Sensor, [i2c_bus: i2c_bus] }, 
       
-      #{ GasSensor.TelemetryThingsboard, []}
+      # Start telemetry genserver for data upload:
+      # { GasSensor.TelemetryThingsboard, []}
     ]
 
     opts = [strategy: :one_for_one, name: GasSensor.Supervisor]

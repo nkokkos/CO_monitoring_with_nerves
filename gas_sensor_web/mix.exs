@@ -4,7 +4,7 @@ defmodule GasSensorWeb.MixProject do
   def project do
     [
       app: :gas_sensor_web,
-      version: "0.1.0",
+      version: "0.2.2",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -56,11 +56,8 @@ defmodule GasSensorWeb.MixProject do
       # Internationalization
       {:gettext, "~> 0.20"},
 
-      # Business logic from local poncho, 
-      # This line must be removed when you compile firmware
-      # this only exists, if you need to have access to methods
-      # in gas_sensor from this ui app.
-      # {:gas_sensor, path: "../gas_sensor", runtime: true},
+      # Business logic from local poncho, must be uncommented when testing with firmware and being on production
+      #{:gas_sensor, path: "../gas_sensor"},
       
       # Only for development
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},

@@ -2,7 +2,7 @@ defmodule Firmware.MixProject do
   use Mix.Project
 
   @app :firmware
-  @version "0.2.1"
+  @version "0.2.2"
 
   # Include all targets
   @all_targets [
@@ -78,13 +78,17 @@ defmodule Firmware.MixProject do
       {:nerves_system_rpi5, "~> 2.0", runtime: false, targets: :rpi5},
       {:nerves_system_x86_64, "~> 1.24", runtime: false, targets: :x86_64},
 
+
       # Enable networking, direct, gadget mode and net wizard to connect to wifi router
-      {:vintage_net,        "~> 0.13" },
-      {:vintage_net_wifi,   "~> 0.12" },    
-      {:vintage_net_direct, "~> 0.10.7" },
+      # Notice, that this will be included for the targets, so if you are testing on 
+      # host, this iex -S mix won't break.
+
+      {:vintage_net,        "~> 0.13", targets: @all_targets },
+      {:vintage_net_wifi,   "~> 0.12", targets: @all_targets },    
+      {:vintage_net_direct, "~> 0.10.7", targets: @all_targets },
      
       # Enable Vintage Net Wizard.  
-      {:vintage_net_wizard, "~> 0.4"},
+      {:vintage_net_wizard, "~> 0.4", targets: @all_targets},
 
       # NervesTime keeps the system clock on Nerves devices in sync 
       # when connected to the network and close to in sync when disconnected.
@@ -117,14 +121,16 @@ defmodule Firmware.MixProject do
       # with the boards and getting the data out.
       # Including this otp this way, it forces the supervisor to start 
       # the app as dependency.
-      {:gas_sensor, path: "../gas_sensor", env: Mix.env()},
 
-      # Phoenix web interface that sports a simple web page that displays
-      # data in live view. Don't start it automatically when the firmware boots,
-      # this is what the runtime: false is about
-      {:gas_sensor_web, path: "../gas_sensor_web", targets: @all_targets, env: Mix.env()}
-      #{:gas_sensor_web, path: "../gas_sensor_web", targets: @all_targets},
-      #{:gas_sensor_web, path: "../gas_sensor_web", runtime: false, targets: @all_targets},
+      # start the business logic and signal sampler: 
+      {:gas_sensor, path: "../gas_sensor", env: Mix.env()},
+      # start the web page 
+      {:gas_sensor_web, path: "../gas_sensor_web", env: Mix.env()},
+
+      # runtime defaults to true:
+      # {:gas_sensor_web, path: "../gas_sensor_web", targets: @all_targets, env: Mix.env()}
+      # {:gas_sensor_web, path: "../gas_sensor_web", targets: @all_targets},
+      # {:gas_sensor_web, path: "../gas_sensor_web", runtime: false, targets: @all_targets},
     
     ]
   end
@@ -155,6 +161,7 @@ defmodule Firmware.MixProject do
   end
 
   # Uncomment the following line if using Phoenix > 1.8.
-  # defp listeners(:host, :dev), do: [Phoenix.CodeReloader]
+  defp listeners(:host, :dev), do: [Phoenix.CodeReloader]
   defp listeners(_, _), do: []
+
 end

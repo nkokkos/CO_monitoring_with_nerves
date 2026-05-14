@@ -1,12 +1,9 @@
 #!/bin/bash
 
-# Remember that to run this when running on dev 
-# mode. This ui app depends on gas_sensor, so 
-# make sure you force compile it.
-# If I am ready to do mix firmmware in the firmware directory
-# make sure that gas_sensor app is not included as 
-# a dependency into the mix.exs file of this ui app.
-
+# This setup is only valid when testing and developing
+# this app by itself
+# make sure that you include gas_sensor otp app as
+# a dependency in the mix file 
 rm -rf _build
 rm -rf deps
 rm -rf priv/static/assets

@@ -19,10 +19,8 @@ defmodule GasSensorWeb.Application do
       # Start the Endpoint (http/https)
       GasSensorWeb.Endpoint,
 
-      # Add simulator components
-      # GasSensorWeb.Simulator.ReadingAgent,
-      # GasSensorWeb.Simulator.History,
-      GasSensorWeb.Simulator.SensorSimulator
+      # Add simulator Genserver for testing on dev mode
+      # GasSensorWeb.Simulator.SensorSimulator
 
     ]
 
