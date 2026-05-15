@@ -12,8 +12,6 @@ for Nerves that separates firmware from business logic, targeting **Raspberry Pi
 ## Project Structure
 
 ```
-genserver_gas_sampler/
-├── README.md                   # This file
 ├── firmware/                   # Nerves firmware application
 ├── gas_sensor/                 # OTP business logic
 └── gas_sensor_web/             # Phoenix web interface
