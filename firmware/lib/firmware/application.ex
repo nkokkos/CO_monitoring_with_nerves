@@ -8,19 +8,15 @@ defmodule Firmware.Application do
 
   It coordinates the startup of:
   - GasSensor OTP app (automatically started as dependency)
-    - GasSensor.ReadingAgent - Stores latest reading
-    - GasSensor.Sensor - Performs I2C readings
- 
- - UI OTP app (automatically started as dependency)
-    - Phoenix web interface on port 80
+
+ - GasSensorWeb app (automatically started as dependency)
+ - Phoenix web interface on port 3001
 
   ## Startup Order
 
   1. GasSensor starts (as a dependency)
-     - ReadingAgent starts first
-     - Sensor starts second and updates Agent after each reading
 
-2. UI starts (as a dependency)
+  2. GasSensorWeb starts (as a dependency)
      - Web server starts and reads from Agent
      - No direct I2C access from web layer
 
@@ -32,20 +28,18 @@ defmodule Firmware.Application do
   @impl true
   def start(_type, _args) do
 
-    # OTP applications (core and ui) are automatically started
-    # as dependencies defined in mix.exs. No manual children needed here.
-   
+    # All these comments have to do with Delux 
+    # Find out the hard way how to make it work
+
     # Use example from blinky example:
-    # https://github.com/nerves-project/nerves_examples/blob/main/blinky/lib/blinky/application.ex
-     
+    # https://github.com/nerves-project/nerves_examples/blob/main/blinky/lib/blinky/application.ex     
     # This will read from config/rpi0.ex file to read the options for delux:    
     # delux_options = Application.get_all_env(:firmware)
    
     # During sampling we can present this status
     # ACT LED starts blinking fast (5Hz), covering the heartbeat
     # Delux.render(Delux.Effects.blink(:on, 5), :notification)
-    # 
-    
+
     # Clear the notification slot:
     # The ACT LED automatically reverts to the 1Hz heartbeat
     # Delux.render(nil, :notification)
@@ -74,20 +68,11 @@ defmodule Firmware.Application do
     # Start blinking at 10 Hz. Before that, make sure that you have removed the solid on.
     # Delux.render(%{status: Delux.Effects.blink(:green, 10)})
 
-
     # Force the kernel to let go of the ACT LED
     # This ensures Delux has total control. This has to be done
     # because once this app loads, the blink never happens.
     
     File.write("/sys/class/leds/ACT/trigger", "none")  
-
-    # gpio pin for the VintageNetwizard:
-    # https://github.com/nerves-networking/vintage_net_wizard
-    # read the config file at /config/target.exs
-    # Summary:
-    # Whey you press the button connected to pin 17 for 5 seconds
-    # an  with the name TGS5052-SETUP will show up
-    # go to 192.168.0.1 or tgs5042.local 
 
     children = [
       
@@ -103,7 +88,10 @@ defmodule Firmware.Application do
         shutdown: 500                            # Give it 500ms to clean up on exit
       },
 
-      # Load the dummy genserver:
+      # This is the shortened way to load the genserver Firmware.Button:
+      # {Firmware.Button, 17}
+
+      # Load a dummy genserver:
       %{
         id: Firmware.Dummy, # A unique name for the supervisor to track
         start: {Firmware.Dummy, :start_link, ["Hello, World!"] }, # {Module, Function, [Args]}
@@ -111,9 +99,7 @@ defmodule Firmware.Application do
         restart: :permanent,                     # Restart it if it crashes
         shutdown: 500                            # Give it 500ms to clean up on exit
       },
-      
-      # This is the shortened way to load the genserver
-      # {Firmware.Button, 17}
+
     ]
 
   opts = [strategy: :one_for_one, name: Firmware.Supervisor]
