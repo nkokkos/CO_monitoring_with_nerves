@@ -232,7 +232,7 @@ defmodule GasSensorWeb.SensorVoltsLive do
 						  <%= Float.round(@current.vsensor, 3) %>
 						</div>
 						<div class="text-2xl text-gray-400">Volts
-                          <div class="text-2xl text-gray-500">Vsensor_offset: <%= Float.round(@current.vsensor_offset, 3) %>V </div>
+                          <div class="text-2xl text-gray-500">Vsensor_offset: <%= Float.round(@current.vsensor_offset, 3) %></div>
 						</div>
                           
 					  </div>

@@ -124,7 +124,7 @@ defmodule GasSensor.Application do
       #GasSensorWeb.Simulator.SensorSimulator,
    
       # Start the main sensor server. Must be enabled during real production:
-      #{GasSensor.Sensor, [i2c_bus: i2c_bus] }, 
+      {GasSensor.Sensor, [i2c_bus: i2c_bus] }, 
       
       # Start telemetry genserver for data upload:
       #{ GasSensor.TelemetryThingsboard, []}

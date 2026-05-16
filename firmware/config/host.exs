@@ -22,7 +22,7 @@ config :gas_sensor_web, GasSensorWeb.Endpoint,
   http: [ip: {0,0,0,0}, port: 3001],
   cache_static_manifest: "priv/static/cache_manifest.json",
   secret_key_base: "im2VAbnBXgHTrb6tJQzsS7w84jbfiMQ6A3jamHvnYiOR10y43E2hcoostekTHXVe",
-  live_view: [signing_salt: "tX+xbzaV"]
+  live_view: [signing_salt: "tX+xbzaV"],
   render_errors: [
     formats: [html: GasSensorWeb.ErrorHTML, json: GasSensorWeb.ErrorJSON],
     layout: false

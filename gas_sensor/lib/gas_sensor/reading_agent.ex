@@ -58,12 +58,7 @@ defmodule GasSensor.ReadingAgent do
   """
   def start_link(_opts \\ []) do
 
-    # Load the vsensor_offset from the config file
-    config = GasSensor.ConfigManager.init()
-    
-    # Update the existing parameter copied over from the 
-    # module attribute
-    initial_state = %{@default_reading | vsensor_offset: config}
+    initial_state = @default_reading
 
     Agent.start_link(fn -> initial_state end, name: @agent_name)
   end
@@ -106,14 +101,6 @@ defmodule GasSensor.ReadingAgent do
     Agent.get(@agent_name, & &1.status)
   end
 
-  # update the offset value. We use it here
-  # from the ui web app
-  def update_vsensor_offset(value) do 
-    Agent.update(@agent_name, fn state ->
-      %{state | vsensor_offset: value}
-    end)
-  end 
- 
   def get_vsensor_offset do
     Agent.get(@agent_name, & &1.vsensor_offset)
   end

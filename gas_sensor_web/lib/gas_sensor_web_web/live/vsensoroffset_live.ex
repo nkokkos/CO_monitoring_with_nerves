@@ -17,9 +17,9 @@ defmodule GasSensorWeb.VsensoroffsetLive do
   def handle_event("save_settings", %{"vsensor_offset" => value}, socket) do 
     case parse_and_validate(value) do 
       {:ok, value} ->
-      GasSensor.ConfigManager.save_vsensor_offset(value)
-      GasSensor.ReadingAgent.update_vsensor_offset(value)
-      {:noreply, assign(socket, vsensor_offset: value, error: nil)}
+        GasSensor.ConfigManager.save_vsensor_offset(value)
+        GenServer.cast(GasSensor.Sensor, {:update_offset, value})
+        {:noreply, assign(socket, vsensor_offset: value, error: nil)}
 		 
       {:error, message} ->
         {:noreply, assign(socket, error: message)}

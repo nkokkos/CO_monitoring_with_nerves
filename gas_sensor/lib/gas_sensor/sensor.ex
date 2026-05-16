@@ -207,13 +207,18 @@ defmodule GasSensor.Sensor do
    
     #reference to the bus
     i2c_bus = Keyword.get(opts, :i2c_bus, "i2c-1")
-    
-    #try to open the i2c bus
+   
+    # load the saved vsensor_offset from file or load the 
+    # default one.
+    vsensor_offset_from_file = GasSensor.ConfigManager.init()
+ 
+    # try to open the i2c bus and update the vsensor_offset key
     case Circuits.I2C.open(i2c_bus) do
       {:ok, ref} ->
         state = 
           @empty_reading
           |> Map.merge(%{i2c: ref})
+          |> Map.put(:vsensor_offset, vsensor_offset_from_file)
 
         # Start first sample immediately
         send(self(), :collect_sample)
@@ -241,7 +246,14 @@ defmodule GasSensor.Sensor do
   def handle_call(:get_state, _from, state) do
     {:reply, state, state}
   end
-  
+ 
+  @impl true
+  def handle_cast({:update_offset, new_offset}, state) do
+    # update the new offset. This should be called from the liveview
+    # page.
+    {:noreply, %{state | vsensor_offset: new_offset}}
+  end
+ 
   @impl true
   def handle_info(:collect_sample, state) do
     
@@ -291,6 +303,7 @@ defmodule GasSensor.Sensor do
            cpu_temperature: cpu_temp,
            vref: vref_median,
            vsensor: vsensor_median,
+           vsensor_offset: state.vsensor_offset,
            vdifferential: vdifferential_median,
            vref_variance: vref_variance,
          }
@@ -310,8 +323,9 @@ defmodule GasSensor.Sensor do
              Logger.error("GasSensor error with value: #{inspect(reason)}")
              new_state =
                @empty_reading
-               |> Map.put(:i2c, state.i2c)  # keep the i2c ref so we can retry next sample
-               |> Map.put(:error_message,   ":error GasSensor.Sensor.handle_info: #{inspect(reason)}")
+               |> Map.put(:i2c, state.i2c) # keep the i2c ref so we can retry next sample
+               |> Map.put(:vsensor_offset, state.vsensor_offset)
+               |> Map.put(:error_message, "handle_info :collect sample: #{inspect(reason)}")
              
              GasSensor.ReadingAgent.add_sample(new_state, :error)  
              #returns the new state and it assigns it to result
@@ -323,6 +337,7 @@ defmodule GasSensor.Sensor do
             new_state =
               @empty_reading
               |> Map.put(:i2c, state.i2c)
+              |> Map.put(:vsensor_offset, state.vsensor_offset)
               |> Map.put(:error_message, "Unexpected value: #{inspect(unexpected)}")
 
               GasSensor.ReadingAgent.add_sample(new_state, :error)
@@ -360,18 +375,19 @@ defmodule GasSensor.Sensor do
       v_ref    = raw_a0 * @volts_per_count
       v_halved = raw_a1 * @volts_per_count
 
-      # Reconstruct the signal
-      # Multiply by 2.0 to reverse the hardware voltage divider I use at the output
+      # Reconstruct the signal from the second op amp->
+      # Multiply by 2.0 to reverse the hardware voltage divider I used at the output
       # of the first op amp mcp6042:
-
       v_op_amp = v_halved * 2.0
 
-      # Calculate differential
-      # This removes the ~2.0V bias of the reference singal to isolate the sensor signal
-      ratio_zero = v_op_amp / v_ref
+      # Calculate the live ratio
+      live_ratio = v_op_amp / v_ref
+
+      # Normalize the vsensor value around the 2.0 reference voltage.
+      v_sensor_normalized = live_ratio * 2.0
 
       # Return a map containing all three calculated values
-      {:ok, %{ differential: ratio_zero, vref: v_ref, vsensor: v_op_amp }}
+      {:ok, %{ differential: live_ratio, vref: v_ref, vsensor: v_sensor_normalized }}
     else
       {:error, reason} -> {:error, reason}
     end
@@ -555,21 +571,24 @@ defmodule GasSensor.Sensor do
   
   # We should use a ratiometric approach since the 5 volts supplying 
   # the 2 volts reference and the op amp is the same.
-  # If there is change in Vref, then it should affect the Vsensor too.
+  # If there is a change in Vref, then it should affect the Vsensor too.
   # By doing ratiometric work, we eliminate the fluctuations.
 
-  defp convert_to_ppm(vref, vsensor, temp, vsensor_offset) do
-    
+  defp convert_to_ppm(_vref, vsensor_median, temp, vsensor_offset) do
+
+    # we don't use vref here. remove it sometime in the future
+     
     # get the correction factor for the look up table
     cf = get_correction_factor(temp)
 
-    # calculate ratio of the 2 values
-    ratio_now = vsensor / vref 
+    # vsensor is normalized and already computed from a median filter
+    vout = vsensor_median
 
-    vout   = ratio_now      * 2.0
-    vzero  = vsensor_offset * 2.0
+    # convert the saved ratio, that is the vsensor_offset into the 2.0 
+    # volts reference
+    vzero = vsensor_offset * 2.0 # for example, 1.036 * 2.0 = 2.072V
      
-    # calculate delta and alpha according to the data sheet
+    # calculate delta and alpha according to the data sheet from figaro
     delta = vout - vzero 
     alpha = (@sensitivity_na_per_ppm * 1.0e-9) * cf
 
