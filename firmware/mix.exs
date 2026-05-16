@@ -2,7 +2,7 @@ defmodule Firmware.MixProject do
   use Mix.Project
 
   @app :firmware
-  @version "0.2.3"
+  @version "0.2.4"
 
   # Include all targets
   @all_targets [
