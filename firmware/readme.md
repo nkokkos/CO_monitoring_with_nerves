@@ -59,3 +59,7 @@ mix archive.install hex nerves_bootstrap --force
 Nerves.Runtime.KV.get_active("nerves_fw_version")
 ```
 
+## Include the ThingsBoard API in env file
+Create an env file at ../ and you do:
+export $(cat ../.env | xargs) && mix firmware
+

@@ -63,6 +63,10 @@ config :logger, backends: [RingLogger]
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# include this regardless of the target
+config :gas_sensor,
+  tb_access_token: System.get_env("TB_ACCESS_TOKEN") || "enter_your_tb_access_token"
+
 # Picks ups configuration based on the host
 # What it does: host.exs contains settings for our host(laptop). For 
 # example using a fake Mock sensor

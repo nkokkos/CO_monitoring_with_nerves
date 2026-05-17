@@ -17,18 +17,22 @@ defmodule GasSensor.TelemetryThingsboard do
   @client_id "gas_sensor_001"
   @host "mqtt.eu.thingsboard.cloud"
   @port 1883
-  @access_token "add_the_access_token_here"
+  #@access_token "add_the_access_token_here"
   @topic "v1/devices/me/telemetry"
 
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts, name: __MODULE__)
 
   def init(_opts) do
+   
+    # load the access token from .env file:
+    access_token = Application.get_env(:gas_sensor, :tb_access_token)
+
     # Start MQTT connection
     case Tortoise.Supervisor.start_child(
       client_id: @client_id,
       handler: {Tortoise.Handler.Default, []},
       server: {Tortoise.Transport.Tcp, host: @host, port: @port},
-      user_name: @access_token
+      user_name: access_token
     ) do
       {:ok, _pid} -> 
         Logger.info("MQTT client started")
@@ -46,8 +50,10 @@ defmodule GasSensor.TelemetryThingsboard do
     
     #payload = Jason.encode!(%{voltage: 3.335, status: "active"})
 
-    data_point = GasSensor.ReadingAgent.get_reading()    
-    payload = Jason.encode!(data_point)
+    #remove the i2c key from the agent since we do not need it. 
+    data_point = GasSensor.ReadingAgent.get_reading()
+    data_point_without_i2c = Map.delete(data_point, :i2c)    
+    payload = Jason.encode!(data_point_without_i2c)
 
     case Tortoise.publish(@client_id, @topic, payload, qos: 1) do
       #qos:1  returns a reference:
