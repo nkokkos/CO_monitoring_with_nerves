@@ -256,7 +256,7 @@ defmodule GasSensor.Sensor do
  
   @impl true
   def handle_info(:collect_sample, state) do
-    
+     
     result = 
 
        with {:ok, bme680_data } <- BMP280.measure(:bme680),

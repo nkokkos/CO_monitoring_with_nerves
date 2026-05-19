@@ -78,7 +78,6 @@ defmodule Firmware.MixProject do
       {:nerves_system_rpi5, "~> 2.0", runtime: false, targets: :rpi5},
       {:nerves_system_x86_64, "~> 1.24", runtime: false, targets: :x86_64},
 
-
       # Enable networking, direct, gadget mode and net wizard to connect to wifi router
       # Notice, that this will be included for the targets, so if you are testing on 
       # host, this iex -S mix won't break.
@@ -114,6 +113,8 @@ defmodule Firmware.MixProject do
       # This is included in the mix file of the otp app:
       # gas_sensor. It is included here as reference.
       #{:bmp280, "~> 0.2" },
+
+      {:nerves_key, "~> 1.1"},
 
       # Poncho dependencies
       # See https://embedded-elixir.com/post/2017-05-19-poncho-projects
