@@ -165,7 +165,7 @@ defmodule GasSensor.Sensor do
     vref_variance: 0.0
   }
 
-  # ── Public API ──────────────────────────────────────────
+  #---------- Public API ---------------------- 
 
   @doc """
   Starts the GasSensor GenServer.
@@ -200,7 +200,7 @@ defmodule GasSensor.Sensor do
     GenServer.call(server, :get_state)
   end
 
-  # ── GenServer Callbacks ──────────────────────────────────
+  # ------ GenServer Callbacks -------------------------------------------
 
   @impl true
   def init(opts) do
@@ -351,7 +351,7 @@ defmodule GasSensor.Sensor do
       {:noreply, result}
   end
 
-  # ── Private Functions ────────────────────────────────────
+  # ---- Private Functions ---------------------------------------------------------
 
   defp collect_samples(i2c, n) do
     results = for _ <- 1..n, do: read_ads1115(i2c)
@@ -394,7 +394,8 @@ defmodule GasSensor.Sensor do
   
   end
 
-  # ── Trigger and Read One Channel ──────────────────────────
+  # ------------- Read Channel -------------------------------------------
+
   # Writes the config register to start a single-shot conversion
   # on the requested channel, waits for the OS bit to confirm
   # completion, then reads and returns the raw signed integer.
@@ -426,7 +427,7 @@ defmodule GasSensor.Sensor do
   end
  
 
-  # ── Read Conversion Result  ────────────────────────────────
+  # -----  Read Conversion Result  -----------------------------------------
   
   # Reads the 16-bit signed result from the conversion register.
   #
@@ -608,7 +609,6 @@ defmodule GasSensor.Sensor do
     |> Enum.sum()
     |> Kernel./(length(list))
   end
-
 
   @doc """
   Calculates the statistical median from a list of numeric sensor readings.
