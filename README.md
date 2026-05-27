@@ -1,4 +1,5 @@
 ## Carbon Monoxide Monitoring with TGS5042 Sensor and Elixir Nerves
+
 ## Please Read the disclaimer
 
 ## This is an Elixir Nerves [poncho project](https://embedded-elixir.com/post/2017-05-19-poncho-projects/)   that samples CO from a TGS5042 sensor.
@@ -144,24 +145,19 @@ Features:
 - Embedded CSS (no external assets needed)
 - Mobile-responsive design
 
-### Firmware Nerves Application
+### Firmware for Nerves Application
 
-Firmware that:
 - Runs on Raspberry Pi Zero W
 - Configures WiFi networking
-- Starts Core OTP app for I2C readings
+- Starts GasSensor OTP app for I2C readings
 - Starts UI Phoenix app for web interface
-- Provides IEx helpers for interactive debugging
 
 ## Calibration
-
-Edit `gas_sensor/lib/gas_sensor/sensor.ex` and update these values based on your sensor datasheet:
 
 ```elixir
 # Sensor calibration constants
 @sensitivity_na_per_ppm 1.525    # nA per ppm (from sensor label/datasheet)
 @r3_ohms 1_200_000               # Feedback resistor value
-@divider_factor 2.0              # Voltage divider factor
 ```
 
 ## Usage
