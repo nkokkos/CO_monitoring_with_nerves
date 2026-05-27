@@ -18,8 +18,8 @@ This project uses a **three-layer poncho architecture** with proper separation o
 │                          │ reads from                      │
 │                          ▼                                 │
 │              ┌─────────────────────────┐                   │
-│              │   ReadingAgent.get/0    │  ◄── Non-blocking │
-│              └───────────┬─────────────┘      O(1) reads   │
+│              │   ReadingAgent.get/0    │                   │
+│              └───────────┬─────────────┘                   │
 └──────────────────────────┼─────────────────────────────────┘
                            │
                            │ updates after each reading
@@ -30,14 +30,14 @@ This project uses a **three-layer poncho architecture** with proper separation o
 │              └───────────┬─────────────┘                   │
 │                          │                                 │
 │                    GasSensor.Sensor                        │
-│                    (GenServer - SINGLE I2C WRITER)         │
+│             (GenServer - SINGLE I2C WRITER)                │
 │                          │                                 │
 │                          │ exclusive access                │
 │                          ▼                                 │
 │                    ┌─────────────┐                         │
-│                    │   I2C Bus   │ ◄─── Hardware (ADS1115) │
-│                    │   i2c-1     │                         │
-│                    └─────────────┘                         │
+│                    │   I2C Bus   │ ◄─── (ADS1115)          |
+│                    │   i2c-1     │ ◄─── (BME680)           |
+│                    └─────────────┘ ◄───  Nerves Key        │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -53,8 +53,8 @@ This project uses a **three-layer poncho architecture** with proper separation o
 - **Better Concurrency**: Multiple web requests can read simultaneously
 
 **Data Flow:**
-1. Sensor reads from I2C every 714ms
-2. Sensor calculates median from 11 in series samples
+1. Sensor reads from I2C 15 seconds
+2. Sensor calculates median from 7 in series samples
 3. Sensor pushes result to Agent (with timestamp)
 4. Phoenix reads from Agent instantly (no blocking)
 
@@ -72,10 +72,10 @@ Supervisor (one_for_one)
 **Complete system supervision:**
 ```
 Nerves Firmware
-├── core OTP App (auto-starts)
+├── GasSensor OTP App (auto-starts)
 │   ├── ReadingAgent
 │   └── Sensor (I2C hardware)
-├── ui OTP App (auto-starts)
+├── GasSensorWeb OTP App (auto-starts)
 │   ├── PubSub
 │   ├── Telemetry
 │   └── Endpoint (HTTP server)
@@ -111,16 +111,6 @@ Core.ReadingAgent.get_status()    # Get status atom
 
 # Internal use only (called by Sensor)
 Core.ReadingAgent.update(reading_map)  # Push new reading
-```
-
-### Reading Map Structure
-
-```elixir
-%{
-  ppm: 45.32,                    # Current CO concentration
-  status: :ok,                   # :ok | :error | :not_started
-  timestamp: ~U[2024-01-15...]   # When last updated
-}
 ```
 
 ## Testing Strategy
@@ -202,48 +192,6 @@ GasSensor.ReadingAgent.get_reading()
 5. **Supervision Trees**: Proper OTP supervision for all processes
 6. **Configuration Separation**: Host vs Target configs
 7. **Documentation**: Architecture documented inline
-
-## Future Enhancements
-
-Possible additions while maintaining architecture:
-
-1. **Historical Storage**: Add ETS or small DB for time-series data
-2. **PubSub**: Use Phoenix PubSub to push updates instead of polling
-3. **Alerts**: Add threshold monitoring in separate process
-4. **Calibration API**: Web interface to update calibration values
-5. **OTA Updates**: Firmware updates via web interface
-
-## Migration Notes
-
-### From Direct GenServer Calls
-
-Before (bad - potential I2C contention):
-```elixir
-# In LiveView - DO NOT DO THIS
-def get_reading do
-  GasSensor.Sensor.get_state()  # Blocks on I2C!
-end
-```
-
-After (good - non-blocking):
-```elixir
-# In LiveView - CORRECT
-def get_reading do
-  GasSensor.ReadingAgent.get_reading()  # Instant read from cache
-end
-```
-
-### When to Use GenServer Directly
-
-Only use `GasSensor.Sensor` directly for:
-- IEx debugging
-- Testing sensor functionality
-- Emergency diagnostics
-
-Never use from:
-- Web requests
-- Concurrent processes
-- Real-time displays
 
 ## Conclusion
 
