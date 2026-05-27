@@ -1,6 +1,7 @@
 ## Carbon Monoxide Monitoring with TGS5042 Sensor and Elixir Nerves
+## Please Read the disclaimer
 
-## This is an Elixir Nerves [poncho project](https://embedded-elixir.com/post/2017-05-19-poncho-projects/)  Project that samples CO from a TGS5042 sensor.
+## This is an Elixir Nerves [poncho project](https://embedded-elixir.com/post/2017-05-19-poncho-projects/)   that samples CO from a TGS5042 sensor.
 
 ## Target Platform
 
@@ -267,30 +268,4 @@ Sensor calibration is approximate and based on datasheet values only.
 > * **No Liability:** This software and hardware design are provided "AS IS", without warranty of any kind, express or implied. In no event shall I, the author, be held liable for any claim, damages, or other liability, including but not limited to personal injury, property damage, or loss of life, arising from the use or misuse of this project.
 >
 > **By exploring or replicating this project, you accept full responsibility for any risks involved.**
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see below for details:
-
-```text
-MIT License
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
