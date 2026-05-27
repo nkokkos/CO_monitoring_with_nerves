@@ -61,7 +61,7 @@ Nerves.Runtime.KV.get_active("nerves_fw_version")
 
 ## Include the ThingsBoard API in env file
 ```First create an env file at the root of the project 
-i.e .env 
+touch .env 
 Inside that file enter your ThingsBoard Access Token:
 TB_ACCESS_TOKEN=your_things_board_access_token
 Then switch back to the firmware directory and to 
