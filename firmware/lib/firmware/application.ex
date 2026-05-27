@@ -8,9 +8,8 @@ defmodule Firmware.Application do
 
   It coordinates the startup of:
   - GasSensor OTP app (automatically started as dependency)
-
- - GasSensorWeb app (automatically started as dependency)
- - Phoenix web interface on port 3001
+ -  GasSensorWeb app (automatically started as dependency)
+    -  Phoenix web interface on port 3001
 
   ## Startup Order
 
