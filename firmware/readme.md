@@ -21,7 +21,7 @@ VintageNet.info()
 VintageNet.all_interfaces()
 ```
 
-## Check all environment in the firmare:
+## Check all environment in the firmware:
 ```
 Application.get_all_env(:firmware)
 ```
