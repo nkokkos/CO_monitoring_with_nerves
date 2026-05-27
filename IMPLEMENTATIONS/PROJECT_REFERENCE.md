@@ -5,9 +5,9 @@
 **Purpose:** Real-time gas sensor monitoring via web interface on Raspberry Pi Zero W  
 **Architecture:** Poncho project (3 OTP applications)  
 **Target:** Raspberry Pi Zero W (ARM single-core, 512MB RAM)  
-**Sensor:** ADS1115 ADC via I2C with CO gas sensor  
+**Sensors:** ADS1115 ADC via I2C with CO gas sensor TGS5042, BME680 Temperature Sensor  
 **Web Interface:** Phoenix LiveView dashboard  
-**Demo Cookie:** `gassensor_demo_cookie_2024` (for Livebook access)
+**Demo Cookie:** `not_set_yet` (for Livebook access)
 
 ---
 
@@ -19,7 +19,7 @@ cd ~/elixir/genserver_gas_sampler
 ./build.sh
 
 # Burn to SD card
-cd sampler && mix burn
+cd firmware && mix burn
 
 # Clean and rebuild
 ./clean.sh --nuclear && ./build.sh
@@ -27,79 +27,7 @@ cd sampler && mix burn
 
 ---
 
-## Project Structure
 
-```
-genserver_gas_sampler/
-├── README.md                           # Project overview
-├── ARCHITECTURE.md                     # Architecture decisions
-├── BUILD_AND_DEPLOY.md                 # Build instructions
-├── MEMORY_ANALYSIS.md                  # Memory optimization
-├── VM_OPTIMIZATION_GUIDE.md            # VM args explained
-├── LIVEBOOK_CONNECTION.md              # Remote debugging
-├── FINAL_CHECKLIST.md                  # Verification steps
-├── WEB_INTERFACE_QUICKSTART.md         # Web UI guide
-├── PROJECT_REFERENCE.md                # This file
-├── build.sh                            # Build script
-├── clean.sh                            # Clean script
-│
-├── gas_sensor/                         # OTP App 1: Business Logic
-│   ├── lib/
-│   │   ├── gas_sensor/
-│   │   │   ├── reading_agent.ex      # Agent for sensor data cache
-│   │   │   ├── sensor.ex             # GenServer (I2C reader)
-│   │   │   └── application.ex        # OTP Application
-│   │   └── gas_sensor.ex
-│   ├── config/
-│   │   ├── config.exs
-│   │   ├── host.exs
-│   │   └── target.exs                  # I2C config (i2c-1)
-│   ├── test/
-│   └── mix.exs                         # Dependencies: circuits_i2c
-│
-├── gas_sensor_web/                     # OTP App 2: Web Interface
-│   ├── lib/gas_sensor_web/
-│   │   ├── application.ex              # OTP Application
-│   │   └── telemetry.ex                # Metrics
-│   ├── lib/gas_sensor_web_web/
-│   │   ├── endpoint.ex                 # HTTP endpoint (port 80)
-│   │   ├── router.ex                   # Routes
-│   │   ├── live/
-│   │   │   ├── dashboard_live.ex       # Main dashboard
-│   │   │   └── sensor_live.ex          # Detailed view
-│   │   ├── components/
-│   │   │   ├── core_components.ex      # UI components
-│   │   │   └── layouts/
-│   │   │       ├── live.html.heex
-│   │   │       └── root.html.heex
-│   │   └── controllers/
-│   │       └── sensor_controller.ex    # JSON API
-│   ├── config/
-│   │   ├── config.exs
-│   │   ├── dev.exs
-│   │   ├── prod.exs                    # Production settings
-│   │   └── test.exs
-│   └── mix.exs                         # Phoenix + LiveView deps
-│
-├── sampler/                            # OTP App 3: Nerves Firmware
-│   ├── lib/sampler/
-│   │   └── application.ex              # Supervision coordination
-│   ├── config/
-│   │   ├── config.exs
-│   │   ├── host.exs
-│   │   └── target.exs                  # WiFi + distribution config
-│   ├── rel/
-│   │   └── vm.args.eex                 # VM optimization settings
-│   ├── rootfs_overlay/
-│   │   └── etc/
-│   │       └── iex.exs                 # IEx helpers
-│   └── mix.exs                         # Nerves deps + rpi0 system
-│
-└── tina_files/                         # Documentation (not in firmware)
-    └── readme.md
-```
-
----
 
 ## Architecture Decisions
 
@@ -115,9 +43,8 @@ genserver_gas_sampler/
 │  - ReadingAgent (data cache)            │
 │  - Sensor GenServer (I2C reader)        │
 ├─────────────────────────────────────────┤
-│ Layer 1: sampler (Nerves Container)     │
-│  - Glues everything together            │
-│  - VM optimization + distribution         │
+│ Layer 1: firmware (Nerves Firmware)     │
+│  - Glues everything together            │      
 └─────────────────────────────────────────┘
 ```
 
@@ -333,7 +260,7 @@ Safety margin:           ~80-150MB ✅
 # Manual build
 cd gas_sensor && mix deps.get && mix compile
 cd ../gas_sensor_web && mix deps.get && mix compile
-cd ../sampler && export MIX_TARGET=rpi0 && mix deps.get && mix firmware
+cd ../firmware && export MIX_TARGET=rpi0 && mix deps.get && mix firmware
 
 # Burn to SD
 cd sampler && mix burn
@@ -457,23 +384,6 @@ cmd("epmd -names")   # Check EPMD running
    - Separate IoT network
    - VPN access only
 
----
-
-## Documentation Files
-
-| File | Purpose |
-|------|---------|
-| `README.md` | Project overview and quick start |
-| `ARCHITECTURE.md` | Architecture decisions and data flow |
-| `BUILD_AND_DEPLOY.md` | Complete build/deploy guide |
-| `MEMORY_ANALYSIS.md` | Memory optimization details |
-| `VM_OPTIMIZATION_GUIDE.md` | Deep dive into VM arguments |
-| `LIVEBOOK_CONNECTION.md` | Remote debugging via Livebook |
-| `FINAL_CHECKLIST.md` | Verification and success criteria |
-| `WEB_INTERFACE_QUICKSTART.md` | Web UI features and usage |
-| `PROJECT_REFERENCE.md` | This comprehensive reference |
-
----
 
 ## Success Criteria
 
@@ -490,25 +400,3 @@ After deploying to Pi Zero W:
 ✅ **CPU:** < 10% at idle  
 ✅ **Temperature:** < 60°C  
 
----
-
-## Version History
-
-**Created:** 2024-03-30  
-**Elixir Version:** ~> 1.15  
-**Nerves System:** rpi0 ~> 1.27  
-**Target:** Raspberry Pi Zero W  
-
----
-
-## Contact & Support
-
-For issues or questions:
-- Check documentation files first
-- Review `TROUBLESHOOTING.md` section above
-- Verify configuration against examples
-- Check logs with `RingLogger.next`
-
----
-
-**End of Reference Document**
