@@ -2,7 +2,7 @@ defmodule Firmware.Button do
   use GenServer
 
   @moduledoc """
-  Implementes the button behaviour based on this example:
+  Implements the button behaviour based on this example:
   https://github.com/nerves-networking/vintage_net_wizard and this code:
   https://github.com/nerves-networking/vintage_net_wizard/blob/main/example/lib/wizard_example/button.ex
 
