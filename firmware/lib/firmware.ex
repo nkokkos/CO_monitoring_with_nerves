@@ -3,7 +3,7 @@ defmodule Firmware do
    Nerves Firmware App called "Firmware"
 
   This is the firmware application that runs on embedded hardware.
-  It depends on the Core OTP application for gas sensing functionality
+  It depends on the GasSensor OTP application for gas sensing functionality
 
   ## Targets
 
@@ -12,8 +12,8 @@ defmodule Firmware do
 
   ## Building
 
-      # Set target (e.g., rpi4)
-      export MIX_TARGET=rpi4
+      # Set target (e.g., rpi0)
+      export MIX_TARGET=rpi0
       
       # Get dependencies
       mix deps.get
