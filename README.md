@@ -237,18 +237,45 @@ mix phx.server
 - [Poncho Projects](https://embedded-elixir.com/post/2017-05-19-poncho-projects/)
 - [Phoenix Framework](https://phoenixframework.org/)
 
+
+---
+
 ## ⚠️ Disclaimer & Safety Warning
 
-**CRITICAL NOTICE: THIS IS A PROOF-OF-CONCEPT / ACADEMIC RESEARCH PROJECT ONLY.**
+> **CRITICAL NOTICE: THIS IS A PROOF-OF-CONCEPT / ACADEMIC RESEARCH PROJECT ONLY.**
+>
+> * **Educational & Research Purposes:** This project is the result of academic research conducted for a Master's Thesis. It is made open-source in good faith, with the sole intention of sharing knowledge and contributing to the open-science community.
+> * **NOT A LIFE-SAVING DEVICE:** This system **MUST NOT**, under any circumstances, be used as a life-saving apparatus, commercial safety device, or official carbon monoxide alarm. 
+> * **No Certification or Calibration:** The hardware and software components used in this project have **NOT** been certified by Underwriters Laboratories (UL), CE, or any other regulatory safety standards. The analog circuit and software calibration applied here are intended *only* to demonstrate a proof-of-concept architecture and have not undergone the rigorous testing required for safety-critical deployment.
+> * **No Liability:** This software and hardware design are provided "AS IS", without warranty of any kind, express or implied. In no event shall the author or the university be held liable for any claim, damages, or other liability, including but not limited to personal injury, property damage, or loss of life, arising from the use or misuse of this project.
+>
+> **By exploring or replicating this project, you accept full responsibility for any risks involved.**
 
-* **Educational & Research Purposes:** This project is the result of academic/personal research. It is made open-source in good faith, with the sole intention of sharing knowledge and contributing to the open-science community.
-* **NOT A LIFE-SAVING DEVICE:** This system **MUST NOT**, under any circumstances, be used as a life-saving apparatus, commercial safety device, or official carbon monoxide alarm. 
-* **No Certification or Calibration:** The hardware and software components used in this project have **NOT** been certified by Underwriters Laboratories (UL), CE, or any other regulatory safety standards. The analog circuit and software calibration applied here are intended *only* to demonstrate a proof-of-concept architecture and have not undergone the rigorous testing required for safety-critical deployment.
-* **No Liability:** This software and hardware design are provided "AS IS", without warranty of any kind, express or implied. In no event shall I, the author be held liable for any claim, damages, or other liability, including but not limited to personal injury, property damage, or loss of life, arising from the use or misuse of this project.
+---
 
-**By exploring or replicating this project, you accept full responsibility for any risks involved.**
+## 📄 License
 
-## License
+This project is licensed under the MIT License - see below for details:
 
+```text
 MIT License
-https://opensource.org/license/MIT
+
+Copyright (c) 2026 [Your Full Name]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
