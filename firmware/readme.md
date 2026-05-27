@@ -12,7 +12,7 @@ mix deps.get
 mix firmware
 ```
 
-## Elixir Nerves commands 
+## Elixir Nerves commands after having logged into the nerves device
 ```
 Application.started_applications
 top()
