@@ -1,6 +1,6 @@
 ## Carbon Monoxide Monitoring with TGS5042 Sensor and Elixir Nerves
 
-## Please Read the disclaimer
+## Please Read the disclaimer _Project is being updated, lots of breaking changes
 
 ## This is an Elixir Nerves [poncho project](https://embedded-elixir.com/post/2017-05-19-poncho-projects/)   that samples CO from a TGS5042 sensor.
 
