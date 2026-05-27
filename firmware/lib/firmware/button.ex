@@ -2,13 +2,19 @@ defmodule Firmware.Button do
   use GenServer
 
   @moduledoc """
+  Implementes the button behaviour based on this example:
+  https://github.com/nerves-networking/vintage_net_wizard and this code:
+  https://github.com/nerves-networking/vintage_net_wizard/blob/main/example/lib/wizard_example/button.ex
+
   This GenServer starts the wizard if a button is depressed for long enough.
+
   """
 
   alias Circuits.GPIO
 
   @doc """
-  Start the button monitor
+  Start the button monitor at pin 17 just like shown here in this example
+  https://github.com/nerves-networking/vintage_net_wizard#running-the-example
 
   Pass an index to the GPIO that's connected to the button.
   """
