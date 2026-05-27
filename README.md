@@ -239,8 +239,28 @@ mix phx.server
 
 ## ⚠️ Disclaimer & Safety Warning
 
-> **CRITICAL NOTICE: THIS IS A PROOF-OF-CONCEPT / ACADEMIC RESEARCH PROJECT ONLY.**
->
+> **THIS IS A PROOF-OF-CONCEPT PROJECT. IT WILL NOT SAVE YOUR LIFE.**
+
+### 🚫 NOT a Safety Device
+This project **must not** be used as:
+- A certified carbon monoxide alarm
+- A life-safety or emergency detection system
+- A replacement for any certified CO detector
+
+**If you need CO protection, buy a certified alarm (UL 2034 / EN 50291).**
+
+### 🎓 Purpose
+This is a personal research project, open-sourced to share knowledge with the embedded systems and Elixir/Nerves community. It demonstrates ADC reading, signal processing, and IoT architecture — nothing more.
+
+### 📋 No Certification
+This project has **not** been tested or certified by:
+- Underwriters Laboratories (UL)
+- CE / EN standards bodies
+- Any regulatory safety authority
+
+Sensor calibration is approximate and based on datasheet values only.
+
+
 > * **Educational & Research Purposes:** This project is the result of personal/academic research. It is made open-source in good faith, with the sole intention of sharing knowledge and contributing to the open-science community.
 > * **NOT A LIFE-SAVING DEVICE:** This system **MUST NOT**, under any circumstances, be used as a life-saving apparatus, commercial safety device, or official carbon monoxide alarm. 
 > * **No Certification or Calibration:** The hardware and software components used in this project have **NOT** been certified by Underwriters Laboratories (UL), CE, or any other regulatory safety standards. The analog circuit and software calibration applied here are intended *only* to demonstrate a proof-of-concept architecture and have not undergone the rigorous testing required for safety-critical deployment.
