@@ -146,19 +146,11 @@ GasSensor.ReadingAgent.get_reading()
 ## Performance Characteristics
 
 ### I2C Timing
-- Sampling interval: 714ms (7 samples over 5 seconds)
-- I2C read time: ~130ms per sample
-- Total cycle: ~130ms read + 584ms wait = 714ms
+- Sampling interval:  (7 samples over 15 seconds)
 
 ### Agent Performance
 - Read operation: O(1) - constant time, no blocking
 - Update operation: O(1) - constant time
-- Memory usage: ~200 bytes (small map)
-
-### Web Performance
-- Page load: ~50ms (minimal CSS, no JS)
-- Update latency: ~1000ms (configured poll interval)
-- Concurrent clients: 100+ (Agent handles concurrent reads)
 
 ## Fault Tolerance
 
