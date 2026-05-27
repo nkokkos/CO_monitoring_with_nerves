@@ -7,7 +7,7 @@ defmodule GasSensor do
   ## Features
 
   - Reads from ADS1115 ADC via I2C
-  - Median filtering (11 samples every 10seconds)
+  - Median filtering (7 samples every 15 seconds)
   - PPM calculation with configurable calibration
   - GenServer-based for fault tolerance
 
