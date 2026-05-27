@@ -1,9 +1,6 @@
 ## Carbon Monoxide Monitoring with TGS5042 Sensor and Elixir Nerves
 
-## This is an Elixir Nerves Poncho Project that samples CO from a TGS5042 sensor.
-
-This is a [poncho project](https://embedded-elixir.com/post/2017-05-19-poncho-projects/) 
-for Nerves that separates firmware from business logic, targeting **Raspberry Pi Zero W**.
+## This is an Elixir Nerves [poncho project](https://embedded-elixir.com/post/2017-05-19-poncho-projects/)  Project that samples CO from a TGS5042 sensor.
 
 ## Target Platform
 
