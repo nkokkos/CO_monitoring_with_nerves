@@ -579,7 +579,7 @@ defmodule GasSensor.Sensor do
 
     # we don't use vref here. remove it sometime in the future
      
-    # get the correction factor for the look up table
+    # get the correction factor from the look up table
     cf = get_correction_factor(temp)
 
     # vsensor is normalized and already computed from a median filter
@@ -599,6 +599,7 @@ defmodule GasSensor.Sensor do
     (delta / (alpha * @r3_ohms)) |> max(0.0) |> min(10_000.0)
   end
 
+  # I don't know here. We never used this variance feature. Just leave here for the time being.
   # Variance - This calculates the variance of the elements in a list
   # Here, we use this to calculate the variance of the Vref signal to 
   # to see if the reference voltages gets degrated over time.
@@ -615,6 +616,7 @@ defmodule GasSensor.Sensor do
   It not used here for the time being
 
   ## Why the Median?
+  - Used in Krumm's book: Ubiquitous computing for sensor reading's filtering
   - **Noise Reduction:** Sensors can produce "spikes" due to transient electrical interference or power fluctuations.
   - **Outlier Immunity:** Unlike the Mean (average), the Median is not skewed by
     single erroneous readings. If 4 readings are ~5000 and 1 is 0 (error), the
