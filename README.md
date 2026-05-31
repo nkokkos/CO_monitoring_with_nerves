@@ -2,7 +2,7 @@
 
 ## Please Read the disclaimer _Project is being updated, lots of breaking changes
 
-## This is an Elixir Nerves [poncho project](https://embedded-elixir.com/post/2017-05-19-poncho-projects/)   that samples CO from a TGS5042 sensor.
+## This is an Elixir Nerves [poncho project](https://embedded-elixir.com/post/2017-05-19-poncho-projects/) that samples CO from a TGS5042 sensor.
 
 ## Target Platform
 
@@ -50,14 +50,10 @@ mix burn
 ```
 
 ## Web Interface
-
-The project includes a Phoenix web interface accessible once the device is on WiFi:
-
-- **Dashboard** (`http://<device-ip>/`) - Overview with visual PPM indicators
-- **Detailed View** (`http://<device-ip>/sensor`) - Live sensor data with sample history
-- **API** (`http://<device-ip>/api/readings/current`) - JSON API for integrations
-
-The web interface updates in real-time using Phoenix LiveView (1-second refresh).
+App runs on port 3001:
+https://github.com/nkokkos/CO_monitoring_with_nerves/blob/main/gas_sensor_web/config/dev.exs
+See router for links:
+https://github.com/nkokkos/CO_monitoring_with_nerves/blob/main/gas_sensor_web/lib/gas_sensor_web_web/router.ex
 
 ## Hardware Setup
 
@@ -110,7 +106,7 @@ A reusable OTP application that provides:
 
 - **GasSensor.Sensor** - GenServer that:
   - Communicates with ADS1115 ADC via I2C
-  - Samples 11 times over 10 seconds
+  - Samples 7 times over 15 seconds
   - Applies median filtering
   - Calculates CO concentration in PPM
   - Provides `get_ppm/0` and `get_state/0` APIs
@@ -125,21 +121,6 @@ Key features:
 
 A lightweight Phoenix web interface that:
 
-- **DashboardLive** (`/`) - Overview dashboard with:
-  - Large PPM display with color-coded indicators
-  - Air quality levels legend
-  - Live update status
-  
-- **SensorLive** (`/sensor`) - Detailed view with:
-  - Current PPM with status badge
-  - Sample count and window size
-  - Recent sample history (last 7 samples)
-  
-- **SensorController** - JSON API:
-  - `GET /api/readings` - All available readings
-  - `GET /api/readings/current` - Current reading only
-
-Features:
 - Real-time updates via LiveView (1-second polling)
 - Minimal dependencies (Bandit web server, no database)
 - Embedded CSS (no external assets needed)
