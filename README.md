@@ -212,8 +212,16 @@ mix phx.server
 - [Poncho Projects](https://embedded-elixir.com/post/2017-05-19-poncho-projects/)
 - [Phoenix Framework](https://phoenixframework.org/)
 
-
 ---
+
+## Screenshots
+
+
+
+
+
+
+
 
 ## ⚠️ Disclaimer & Safety Warning
 
