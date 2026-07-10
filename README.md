@@ -216,11 +216,29 @@ mix phx.server
 
 ## Screenshots
 
+### TGS5042 Perfboard:
+<img width="950" height="567" alt="tgs5042_perfboard" src="https://github.com/user-attachments/assets/7edf461e-e9dc-477a-9582-ca207d7c46bf" />
 
+### ADS115_ADC ON BREADBOARD:
+<img width="966" height="522" alt="ads1115_adc" src="https://github.com/user-attachments/assets/0320a261-c217-47bf-8c57-7130d68bda98" />
 
+### BREADBOAD WITH BREAKOUT BOARDS:
+<img width="953" height="495" alt="bread_board" src="https://github.com/user-attachments/assets/04e41831-c105-4bb7-8eed-808eb5edd7a1" />
 
+### BREADBOARD WITH RPIO0 CONNECTED:
+<img width="933" height="422" alt="breadboard_with_rpi0" src="https://github.com/user-attachments/assets/7ca947c7-4318-456b-97a8-2017ee1c7ef2" />
 
+### CAR EXPERIMENT 1
+<img width="865" height="456" alt="car_experiment_1" src="https://github.com/user-attachments/assets/4b74c64d-c400-4d24-8c21-fcea22c5693d" />
 
+### CAR EXPERIMENT 2
+<img width="882" height="500" alt="car_experiment_2" src="https://github.com/user-attachments/assets/33cecd7e-6601-4807-829b-acfd1afdc673" />
+
+### GRAPH WITH CO AND TEMP FROM CAR EXPERIMENT
+<img width="1486" height="849" alt="graph_co_with_Temp" src="https://github.com/user-attachments/assets/8755dfbc-fac8-4e1b-823e-de8dca918b19" />
+
+### THINGSBOARD.IO GRAPH USING THE SAME DATA FROM CAR EXPERIMENT:
+<img width="1598" height="824" alt="things_board_graph_car" src="https://github.com/user-attachments/assets/6da4207e-3239-4bda-ab2a-09813c19a473" />
 
 
 ## ⚠️ Disclaimer & Safety Warning
